@@ -22,5 +22,7 @@
 *.sub
 *.sbv
 
+frame_metadata.json
+
 # Ignore virtual environment directory
 venv/
