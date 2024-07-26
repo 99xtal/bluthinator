@@ -1,0 +1,26 @@
+# Ignore video files
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.flv
+*.wmv
+*.webm
+
+# Ignore image files
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.tiff
+*.svg
+*.webp
+
+# Ignore subtitle files
+*.srt
+*.sub
+*.sbv
+
+# Ignore virtual environment directory
+venv/
