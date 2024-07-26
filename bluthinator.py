@@ -77,7 +77,7 @@ def extract_and_save_frames(video_path, srt_path: str, output_dir, threshold=500
 
     while True:
         in_bytes = process.stdout.read(frame_size)
-        if not in_bytes or frame_number > 500:
+        if not in_bytes:
             break
 
         img_array = np.frombuffer(in_bytes, np.uint8).reshape((frame_height, frame_width, 3))
