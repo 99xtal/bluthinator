@@ -20,7 +20,6 @@ def get_video_dimensions(video_path):
     numerator, denominator = map(int, raw_frame_rate.split('/'))
     frame_rate = math.ceil(numerator / denominator)
     return width, height, frame_rate
-    
 
 def average_color_per_section(img_array: np.array, sections: int) -> list:
     width, height, _ = img_array.shape
@@ -40,12 +39,14 @@ def average_color_per_section(img_array: np.array, sections: int) -> list:
 def color_difference(avg_colors_1, avg_colors_2):
     return np.linalg.norm(avg_colors_1 - avg_colors_2)
 
-def frame_to_timestamp(frame_number, frame_rate):
-    total_seconds = frame_number / frame_rate
-    hours = int(total_seconds // 3600)
-    minutes = int((total_seconds % 3600) // 60)
-    seconds = int(total_seconds % 60)
-    milliseconds = int((total_seconds - int(total_seconds)) * 1000)
+def frame_to_timestamp_ms(frame_number, frame_rate):
+    return frame_number * 1000 // frame_rate
+
+def ms_to_sub_timestamp(ms):
+    hours = ms // 3600000
+    minutes = (ms % 3600000) // 60000
+    seconds = (ms % 60000) // 1000
+    milliseconds = ms % 1000
     return f"{hours:02}:{minutes:02}:{seconds:02},{milliseconds:03}"
 
 def detect_encoding(file_path):
@@ -58,10 +59,10 @@ def parse_subtitles(file_path) -> pysrt.SubRipFile:
     encoding = detect_encoding(file_path)
     return pysrt.open(file_path, encoding=encoding)
 
-def find_subtitle_for_frame(subs: pysrt.SubRipFile, frame_number: int, frame_rate: int) -> str:
-    timestamp = frame_to_timestamp(frame_number, frame_rate)
+def find_subtitle_for_timestamp(subs: pysrt.SubRipFile, timestamp: int) -> str:
+    sub_timestamp = ms_to_sub_timestamp(timestamp)
     for sub in subs:
-        if sub.start <= timestamp <= sub.end:
+        if sub.start <= sub_timestamp <= sub.end:
             return sub.text
     return None
 
@@ -75,7 +76,7 @@ def extract_and_save_frames(video_path, output_dir, threshold=500, chunk_factor=
     frame_metadata = []
 
     # Extract the subtitles from the video
-    subtitle_path = f'{output_dir}/S1E01.srt'
+    subtitle_path = f'{output_dir}/subtitles.srt'
     ffmpeg.input(video_path).output(subtitle_path, format='srt').run(overwrite_output=True)
     subs = parse_subtitles(subtitle_path)
 
@@ -84,7 +85,7 @@ def extract_and_save_frames(video_path, output_dir, threshold=500, chunk_factor=
 
     while True:
         in_bytes = process.stdout.read(frame_size)
-        if not in_bytes or frame_number:
+        if not in_bytes:
             break
 
         img_array = np.frombuffer(in_bytes, np.uint8).reshape((frame_height, frame_width, 3))
@@ -95,15 +96,17 @@ def extract_and_save_frames(video_path, output_dir, threshold=500, chunk_factor=
 
         diff = color_difference(prev_frame_avg_colors, frame_avg_colors)
         if (diff > threshold):
+            timestamp = frame_to_timestamp_ms(frame_number, frame_rate)
+
             # Convert the raw video frame to a PNG image
             img = Image.frombytes('RGB', (frame_width, frame_height), in_bytes)
-            img.save(f'{output_dir}/frames/{frame_number:04d}.png')
+            img.save(f'{output_dir}/frames/{timestamp}.png')
 
             # Get the subtitle for the frame
-            subtitle = find_subtitle_for_frame(subs, frame_number, frame_rate)
+            subtitle = find_subtitle_for_timestamp(subs, timestamp)
 
             frame_metadata.append({
-                'frame_number': frame_number,
+                'timestamp': timestamp,
                 'subtitle': subtitle,
             })
             prev_frame_avg_colors = frame_avg_colors
