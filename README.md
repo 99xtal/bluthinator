@@ -19,6 +19,7 @@ pip install -r requirements.txt
 Example Usage
 ```
 python3 bluthinator.py ./episodes
+python3 bluthinator.py ./episodes -o ./output_dir
 ```
 
 ### Running the entire project

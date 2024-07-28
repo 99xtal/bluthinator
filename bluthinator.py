@@ -1,3 +1,4 @@
+import argparse
 import chardet
 import ffmpeg
 import glob
@@ -141,8 +142,14 @@ def extract_and_save_frames(video_path, output_dir, threshold=400, chunk_factor=
     process.wait()
 
 def main():
-    input_dir = './episodes'
-    output_base_dir = './output'
+    parser = argparse.ArgumentParser(description='Extract frames and metadata from video files')
+    parser.add_argument('input_dir', type=str, help='Input directory containing video files')
+    parser.add_argument('-o', '--output', type=str, default='./output', help='Base directory for output (default: ./output)')
+
+    # Parse the command-line arguments
+    args = parser.parse_args()
+    input_dir = args.input_dir
+    output_base_dir = args.output
 
     # Iterate over all video files in the input directory
     video_files = glob.glob(os.path.join(input_dir, '*.mkv'))
