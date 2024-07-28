@@ -76,10 +76,11 @@ def clean_subtitle_text(subtitle):
     subtitle = ' '.join(subtitle.split())
     return subtitle
 
-def extract_and_save_frames(video_path, output_dir, threshold=250, chunk_factor=10):
+def extract_and_save_frames(video_path, output_dir, threshold=400, chunk_factor=10):
     # Get the dimensions of the video
     frame_width, frame_height, frame_rate = get_video_dimensions(video_path)
     frame_size = frame_width * frame_height * 3
+    aspect_ratio = frame_width / frame_height;
     frame_number = 0
     prev_frame_avg_colors = None
 
@@ -110,7 +111,16 @@ def extract_and_save_frames(video_path, output_dir, threshold=250, chunk_factor=
 
             # Convert the raw video frame to a PNG image
             img = Image.frombytes('RGB', (frame_width, frame_height), in_bytes)
-            img.save(f'{output_dir}/frames/{timestamp}.png')
+            sizes = {
+                "small": 240,
+                "medium": 480,
+                "large": 720,
+            }
+            for size_name, size in sizes.items():
+                resized_img = img.resize((math.ceil(size * aspect_ratio), size))
+
+                os.makedirs(f'{output_dir}/frames/{timestamp}', exist_ok=True)
+                resized_img.save(f'{output_dir}/frames/{timestamp}/{size_name}.png')
 
             # Get the subtitle for the frame
             subtitle = find_subtitle_for_timestamp(subs, timestamp)
