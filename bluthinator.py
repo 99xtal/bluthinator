@@ -2,10 +2,11 @@ import chardet
 import ffmpeg
 import json
 import math
-import pysrt
-import os
 import numpy as np
+import os
 from PIL import Image
+import pysrt
+import re
 
 def get_video_dimensions(video_path):
     # Use ffprobe to get the metadata of the video file
@@ -66,6 +67,15 @@ def find_subtitle_for_timestamp(subs: pysrt.SubRipFile, timestamp: int) -> str:
             return sub.text
     return None
 
+def clean_subtitle_text(subtitle):
+    # Remove style tags (e.g., <i>...</i>)
+    subtitle = re.sub(r'<[^>]+>', '', subtitle)
+    # Replace newline characters with spaces
+    subtitle = subtitle.replace('\n', ' ')
+    # Remove extra spaces
+    subtitle = ' '.join(subtitle.split())
+    return subtitle
+
 def extract_and_save_frames(video_path, output_dir, threshold=500, chunk_factor=10):
     # Get the dimensions of the video
     frame_width, frame_height, frame_rate = get_video_dimensions(video_path)
@@ -85,7 +95,7 @@ def extract_and_save_frames(video_path, output_dir, threshold=500, chunk_factor=
 
     while True:
         in_bytes = process.stdout.read(frame_size)
-        if not in_bytes:
+        if not in_bytes or frame_number > 500:
             break
 
         img_array = np.frombuffer(in_bytes, np.uint8).reshape((frame_height, frame_width, 3))
@@ -107,7 +117,7 @@ def extract_and_save_frames(video_path, output_dir, threshold=500, chunk_factor=
 
             frame_metadata.append({
                 'timestamp': timestamp,
-                'subtitle': subtitle,
+                'subtitle': clean_subtitle_text(subtitle) if subtitle else None,
             })
             prev_frame_avg_colors = frame_avg_colors
 
