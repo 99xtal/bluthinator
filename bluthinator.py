@@ -54,16 +54,18 @@ def detect_encoding(file_path):
     result = chardet.detect(raw_data)
     return result['encoding']
 
-def get_subtitle_for_frame(srt_path, frame_number, frame_rate):
-    encoding = detect_encoding(srt_path)
-    subs = pysrt.open(srt_path, encoding=encoding)
+def parse_subtitles(file_path) -> pysrt.SubRipFile:
+    encoding = detect_encoding(file_path)
+    return pysrt.open(file_path, encoding=encoding)
+
+def find_subtitle_for_frame(subs: pysrt.SubRipFile, frame_number: int, frame_rate: int) -> str:
     timestamp = frame_to_timestamp(frame_number, frame_rate)
     for sub in subs:
         if sub.start <= timestamp <= sub.end:
             return sub.text
     return None
 
-def extract_and_save_frames(video_path, srt_path: str, output_dir, threshold=500, chunk_factor=10):
+def extract_and_save_frames(video_path, output_dir, threshold=500, chunk_factor=10):
     # Get the dimensions of the video
     frame_width, frame_height, frame_rate = get_video_dimensions(video_path)
     frame_size = frame_width * frame_height * 3
@@ -72,12 +74,17 @@ def extract_and_save_frames(video_path, srt_path: str, output_dir, threshold=500
 
     frame_metadata = []
 
+    # Extract the subtitles from the video
+    subtitle_path = f'{output_dir}/S1E01.srt'
+    ffmpeg.input(video_path).output(subtitle_path, format='srt').run(overwrite_output=True)
+    subs = parse_subtitles(subtitle_path)
+
     # Start the ffmpeg process
     process = ffmpeg.input(video_path).output('pipe:', format='rawvideo', pix_fmt='rgb24').run_async(pipe_stdout=True)
 
     while True:
         in_bytes = process.stdout.read(frame_size)
-        if not in_bytes:
+        if not in_bytes or frame_number:
             break
 
         img_array = np.frombuffer(in_bytes, np.uint8).reshape((frame_height, frame_width, 3))
@@ -93,8 +100,7 @@ def extract_and_save_frames(video_path, srt_path: str, output_dir, threshold=500
             img.save(f'{output_dir}/frames/{frame_number:04d}.png')
 
             # Get the subtitle for the frame
-            subtitle = get_subtitle_for_frame(srt_path, frame_number, frame_rate)
-            print(subtitle);
+            subtitle = find_subtitle_for_frame(subs, frame_number, frame_rate)
 
             frame_metadata.append({
                 'frame_number': frame_number,
@@ -112,13 +118,12 @@ def extract_and_save_frames(video_path, srt_path: str, output_dir, threshold=500
 
 def main():
     input_video = './episodes/S1E01.mkv'
-    input_srt = './episodes/S1E01.srt'
     output_dir = './output/S1E01'
 
     # Create the output directory if it does not exist
     os.makedirs(f'{output_dir}/frames', exist_ok=True)
 
-    extract_and_save_frames(input_video, input_srt, output_dir)
+    extract_and_save_frames(input_video, output_dir)
 
 if __name__ == "__main__":
     main()
