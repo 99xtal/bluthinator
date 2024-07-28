@@ -76,7 +76,7 @@ def clean_subtitle_text(subtitle):
     subtitle = ' '.join(subtitle.split())
     return subtitle
 
-def extract_and_save_frames(video_path, output_dir, threshold=500, chunk_factor=10):
+def extract_and_save_frames(video_path, output_dir, threshold=250, chunk_factor=10):
     # Get the dimensions of the video
     frame_width, frame_height, frame_rate = get_video_dimensions(video_path)
     frame_size = frame_width * frame_height * 3
@@ -95,7 +95,7 @@ def extract_and_save_frames(video_path, output_dir, threshold=500, chunk_factor=
 
     while True:
         in_bytes = process.stdout.read(frame_size)
-        if not in_bytes or frame_number > 500:
+        if not in_bytes:
             break
 
         img_array = np.frombuffer(in_bytes, np.uint8).reshape((frame_height, frame_width, 3))
