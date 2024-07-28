@@ -1,5 +1,6 @@
 import chardet
 import ffmpeg
+import glob
 import json
 import math
 import numpy as np
@@ -140,13 +141,22 @@ def extract_and_save_frames(video_path, output_dir, threshold=400, chunk_factor=
     process.wait()
 
 def main():
-    input_video = './episodes/S1E01.mkv'
-    output_dir = './output/S1E01'
+    input_dir = './episodes'
+    output_base_dir = './output'
 
-    # Create the output directory if it does not exist
-    os.makedirs(f'{output_dir}/frames', exist_ok=True)
+    # Iterate over all video files in the input directory
+    video_files = glob.glob(os.path.join(input_dir, '*.mkv'))
 
-    extract_and_save_frames(input_video, output_dir)
+    for video_file in video_files:
+        # Extract the base name of the video file (e.g., S1E01 from S1E01.mkv)
+        base_name = os.path.splitext(os.path.basename(video_file))[0]
+        output_dir = os.path.join(output_base_dir, base_name)
+
+        # Create the output directory for the current video file
+        os.makedirs(f'{output_dir}/frames', exist_ok=True)
+
+        # Run the extract function on the current video file
+        extract_and_save_frames(video_file, output_dir)
 
 if __name__ == "__main__":
     main()
