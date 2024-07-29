@@ -32,6 +32,11 @@ POSTGRES_PASSWORD=examplepassword
 POSTGRES_DB=bluthinator
 ```
 
+Run the `bluthinator` script and copy the metadata file into the database folder
+```
+cp ./output/frame_metadata.json ./db/frame_metadata.json
+```
+
 From the root directory, run Docker Compose:
 ```
 docker compose up -d
