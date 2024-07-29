@@ -135,11 +135,9 @@ def extract_and_save_frames(video_path, output_dir, threshold=400, chunk_factor=
 
         frame_number += 1
 
-    # Write the list to a JSON file
-    with open(f'{output_dir}/frame_metadata.json', 'w') as json_file:
-        json.dump(frame_metadata, json_file, indent=4)
+    process.kill()
 
-    process.wait()
+    return frame_metadata
 
 def main():
     parser = argparse.ArgumentParser(description='Extract frames and metadata from video files')
@@ -154,6 +152,8 @@ def main():
     # Iterate over all video files in the input directory
     video_files = glob.glob(os.path.join(input_dir, '*.mkv'))
 
+    combined_frame_metadata = []
+
     for video_file in video_files:
         # Extract the base name of the video file (e.g., S1E01 from S1E01.mkv)
         base_name = os.path.splitext(os.path.basename(video_file))[0]
@@ -163,7 +163,16 @@ def main():
         os.makedirs(f'{output_dir}/frames', exist_ok=True)
 
         # Run the extract function on the current video file
-        extract_and_save_frames(video_file, output_dir)
+        frame_metadata = extract_and_save_frames(video_file, output_dir)
+
+        # Add the episode name to the metadata
+        for entry in frame_metadata:
+            entry['episode'] = base_name
+        combined_frame_metadata.extend(frame_metadata)
+
+    # Write the list to a JSON file
+    with open(f'{output_base_dir}/frame_metadata.json', 'w') as json_file:
+        json.dump(combined_frame_metadata, json_file, indent=4)
 
 if __name__ == "__main__":
     main()
