@@ -4,24 +4,6 @@ Bluthinator is a search engine for the TV show Arrested Development. It processe
 
 ## Development Setup
 
-### Running the Bluthinator script
-Initialize virtual environment
-```
-python3 -m venv venv
-source venv/bin/activate
-```
-
-Install dependencies
-```
-pip install -r requirements.txt
-```
-
-Example Usage
-```
-python3 bluthinator.py ./episodes
-python3 bluthinator.py ./episodes -o ./output_dir
-```
-
 ### Running the entire project
 *Requirements*: Docker, Docker Compose
 
@@ -30,11 +12,8 @@ Source the following environment variables:
 POSTGRES_USER=exampleuser
 POSTGRES_PASSWORD=examplepassword
 POSTGRES_DB=bluthinator
-```
-
-Run the `bluthinator` script and copy the metadata file into the database folder
-```
-cp ./output/frame_metadata.json ./db/frame_metadata.json
+MINIO_ROOT_USER=minio
+MINIO_ROOT_PASSWORD=minio123
 ```
 
 From the root directory, run Docker Compose:
