@@ -145,9 +145,9 @@ def process_episodes():
                 prev_frame_avg_colors = frame_avg_colors
                 continue
 
-            diff = color_difference(prev_frame_avg_colors, frame_avg_colors)
+            diff = utils.color_difference(prev_frame_avg_colors, frame_avg_colors)
             if (diff > threshold):
-                timestamp = frame_to_timestamp_ms(frame_number, frame_rate)
+                timestamp = utils.frame_to_timestamp_ms(frame_number, frame_rate)
 
                 # Convert the raw video frame to a PNG image
                 img = Image.frombytes('RGB', (frame_width, frame_height), in_bytes)
