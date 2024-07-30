@@ -28,3 +28,10 @@ frame_metadata.json
 venv/
 
 .env
+
+# Airflow
+airflow.db
+airflow.cfg
+logs/
+dags/__pycache__/
+plugins/__pycache__/
