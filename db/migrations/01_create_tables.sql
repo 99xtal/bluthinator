@@ -15,11 +15,25 @@ CREATE TABLE episodes (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE subtitles (
+    id SERIAL PRIMARY KEY,
+    episode TEXT NOT NULL,
+    text TEXT NOT NULL,
+    start_timestamp INT NOT NULL,
+    end_timestamp INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Ensure the key field in the episodes table is unique
 ALTER TABLE episodes
 ADD CONSTRAINT unique_key UNIQUE (key);
 
 -- Add a foreign key constraint to the frames table
 ALTER TABLE frames
+ADD CONSTRAINT fk_episode
+FOREIGN KEY (episode) REFERENCES episodes(key);
+
+-- Add a foreign key constraint to the subtitles table
+ALTER TABLE subtitles
 ADD CONSTRAINT fk_episode
 FOREIGN KEY (episode) REFERENCES episodes(key);
