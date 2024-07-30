@@ -6,6 +6,8 @@ chardet==5.2.0
 ffmpeg-python==0.2.0
 future==1.0.0
 minio==7.2.7
+numpy==2.0.1
+pillow==10.4.0
 psycopg2-binary==2.9.9
 pycparser==2.22
 pycryptodome==3.20.0

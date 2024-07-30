@@ -1,37 +1,16 @@
 from airflow.decorators import dag, task
 from datetime import datetime
 import ffmpeg
+import math
 from minio import Minio
 import os
+import numpy as np
+from PIL import Image
 import psycopg2
 from psycopg2 import sql
 import pysrt
 import re
-
-def sub_timestamp_to_ms(timestamp: pysrt.SubRipTime) -> int:
-    # Split the timestamp into hours, minutes, seconds, and milliseconds
-    timestamp_str = str(timestamp)
-    hours, minutes, seconds_milliseconds = timestamp_str.split(':')
-    seconds, milliseconds = seconds_milliseconds.split(',')
-    
-    # Convert each part to milliseconds
-    hours_ms = int(hours) * 3600000
-    minutes_ms = int(minutes) * 60000
-    seconds_ms = int(seconds) * 1000
-    milliseconds = int(milliseconds)
-    
-    # Sum all parts to get the total milliseconds
-    total_ms = hours_ms + minutes_ms + seconds_ms + milliseconds
-    return total_ms
-
-def clean_subtitle_text(subtitle):
-    # Remove style tags (e.g., <i>...</i>)
-    subtitle = re.sub(r'<[^>]+>', '', subtitle)
-    # Replace newline characters with spaces
-    subtitle = subtitle.replace('\n', ' ')
-    # Remove extra spaces
-    subtitle = ' '.join(subtitle.split())
-    return subtitle
+import utils
 
 @dag(
     schedule_interval=None,
@@ -57,7 +36,6 @@ def process_episodes():
             local_video_paths.append(video_path)
         return local_video_paths
     
-    
     @task
     def extract_subtitle_file_from_video(video_file_path):
         subtitle_path = video_file_path.replace('.mkv', '.srt')
@@ -73,9 +51,9 @@ def process_episodes():
         subtitle_records = []
         for sub in subs:
             subtitle_records.append({
-                'text': clean_subtitle_text(sub.text),
-                'start_timestamp': sub_timestamp_to_ms(sub.start),
-                'end_timestamp': sub_timestamp_to_ms(sub.end),
+                'text': utils.clean_subtitle_text(sub.text),
+                'start_timestamp': utils.sub_timestamp_to_ms(sub.start),
+                'end_timestamp': utils.sub_timestamp_to_ms(sub.end),
                 'episode': episode_key
             })
         
@@ -139,9 +117,107 @@ def process_episodes():
 
         return None
     
-    @task
+    @task(multiple_outputs=True)
     def extract_video_frames(video_file_path):
-        print(f'Extracting frames from {video_file_path}')
+        # Get the dimensions of the video
+        frame_width, frame_height, frame_rate = utils.get_video_dimensions(video_file_path)
+        frame_size = frame_width * frame_height * 3
+        aspect_ratio = frame_width / frame_height;
+        frame_number = 0
+        frame_metadata = []
+        chunk_factor = 10
+        threshold = 400
+        prev_frame_avg_colors = None
+        episode_key = os.path.splitext(os.path.basename(video_file_path))[0]
+        output_dir = f'/tmp/frames/{episode_key}'
+
+        # Start the ffmpeg process
+        process = ffmpeg.input(video_file_path).output('pipe:', format='rawvideo', pix_fmt='rgb24').run_async(pipe_stdout=True)
+
+        while True:
+            in_bytes = process.stdout.read(frame_size)
+            if not in_bytes:
+                break
+
+            img_array = np.frombuffer(in_bytes, np.uint8).reshape((frame_height, frame_width, 3))
+            frame_avg_colors = utils.average_color_per_section(img_array, chunk_factor)
+            if prev_frame_avg_colors is None:
+                prev_frame_avg_colors = frame_avg_colors
+                continue
+
+            diff = color_difference(prev_frame_avg_colors, frame_avg_colors)
+            if (diff > threshold):
+                timestamp = frame_to_timestamp_ms(frame_number, frame_rate)
+
+                # Convert the raw video frame to a PNG image
+                img = Image.frombytes('RGB', (frame_width, frame_height), in_bytes)
+                sizes = {
+                    "small": 240,
+                    "medium": 480,
+                    "large": 720,
+                }
+                for size_name, size in sizes.items():
+                    resized_img = img.resize((math.ceil(size * aspect_ratio), size))
+
+                    os.makedirs(f'{output_dir}/{timestamp}', exist_ok=True)
+                    resized_img.save(f'{output_dir}/{timestamp}/{size_name}.png')
+
+
+                frame_metadata.append({
+                    'timestamp': timestamp,
+                    'episode': episode_key
+                })
+                prev_frame_avg_colors = frame_avg_colors
+
+            frame_number += 1
+
+        return { 'output_dir': output_dir, 'frame_metadata': frame_metadata }
+
+    @task
+    def load_frame_metadata_to_db(frame_metadata: list):
+        print(f'Loading {len(frame_metadata)} frame metadata records to the database')
+
+        try:
+            # Database connection parameters
+            db_params = {
+                'dbname': os.getenv('POSTGRES_DB'),
+                'user': os.getenv('POSTGRES_USER'),
+                'password': os.getenv('POSTGRES_PASSWORD'),
+                'host': os.getenv('POSTGRES_HOST', 'db'),
+                'port': os.getenv('POSTGRES_PORT', 5432)
+            }
+
+            # Connect to the PostgreSQL database
+            conn = psycopg2.connect(**db_params)
+            cursor = conn.cursor()
+
+            # Delete existing records with the same episode field
+            delete_query = sql.SQL("""
+                DELETE FROM frames WHERE episode = %s
+            """)
+            cursor.execute(delete_query, (frame_metadata[0]['episode'],))
+
+            # Insert frame metadata records into the frames table
+            insert_query = sql.SQL("""
+                INSERT INTO frames (episode, timestamp) VALUES (%s, %s)
+            """)
+
+            for (i, record) in enumerate(frame_metadata):
+                print(f'[{i + 1}/{len(frame_metadata)}] {record}')
+                cursor.execute(insert_query, (record['episode'], record['timestamp']))
+
+            # Commit the transaction and close the connection
+            conn.commit()
+        except Exception as e:
+            print(f'Error loading frame metadata to the database: {e}')
+            raise
+        finally:
+            # Ensure the cursor and connection are closed
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
+
         return None
 
     video_file_paths = extract_video_files()
@@ -152,6 +228,8 @@ def process_episodes():
 
     subtitle_records >> load_subtitles_to_db.expand(subtitle_records=subtitle_records)
 
-    video_file_paths >> extract_video_frames.expand(video_file_path=video_file_paths)
+    outputs = extract_video_frames.expand(video_file_path=video_file_paths)
+    frame_metadata_list = outputs.map(lambda x: x['frame_metadata'])
+    load_frame_metadata_to_db.expand(frame_metadata=frame_metadata_list)
 
 dag_instance = process_episodes()

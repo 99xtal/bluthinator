@@ -2,7 +2,6 @@ CREATE TABLE frames (
     id SERIAL PRIMARY KEY,
     timestamp INT NOT NULL,
     episode TEXT NOT NULL,
-    subtitle TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
