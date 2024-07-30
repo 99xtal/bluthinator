@@ -61,7 +61,7 @@ def process_episodes():
     @task
     def extract_subtitle_file_from_video(video_file_path):
         subtitle_path = video_file_path.replace('.mkv', '.srt')
-        ffmpeg.input(video_file_path).output(subtitle_path, format='srt').run(capture_stdout=True, capture_stderr=True)
+        ffmpeg.input(video_file_path).output(subtitle_path, format='srt').run(capture_stdout=True, capture_stderr=True, overwrite_output=True)
         return subtitle_path
     
     @task
