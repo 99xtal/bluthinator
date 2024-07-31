@@ -220,6 +220,32 @@ def process_episodes():
 
         return None
 
+    @task
+    def load_frames_to_object_storage(frame_dir):
+        client = Minio(
+            endpoint="minio:9000",
+            access_key=os.getenv("MINIO_ACCESS_KEY"),
+            secret_key=os.getenv("MINIO_SECRET_KEY"),
+            secure=False
+        )
+
+        bucket_name = 'bluthinator'
+        episode_key = os.path.basename(frame_dir)
+        objects = []
+        for root, dirs, files in os.walk(frame_dir):
+            for file in files:
+                file_path = os.path.join(root, file)
+                object_name = f'frames/{episode_key}/{os.path.relpath(file_path, frame_dir)}'
+                objects.append((file_path, object_name))
+
+        for (file_path, object_name) in objects:
+            print(f'Uploading {file_path} to object storage')
+            client.fput_object(
+                bucket_name=bucket_name,
+                object_name=object_name,
+                file_path=file_path
+            )
+
     video_file_paths = extract_video_files()
     subtitle_file_paths = extract_subtitle_file_from_video.expand(video_file_path=video_file_paths)
 
@@ -231,5 +257,8 @@ def process_episodes():
     outputs = extract_video_frames.expand(video_file_path=video_file_paths)
     frame_metadata_list = outputs.map(lambda x: x['frame_metadata'])
     load_frame_metadata_to_db.expand(frame_metadata=frame_metadata_list)
+
+    frame_dir_list = outputs.map(lambda x: x['output_dir'])
+    load_frames_to_object_storage.expand(frame_dir=frame_dir_list)
 
 dag_instance = process_episodes()
