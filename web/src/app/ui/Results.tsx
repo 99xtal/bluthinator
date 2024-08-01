@@ -11,9 +11,11 @@ export default async function Results({ query }: { query: string }) {
     }
 
     return (
-        <div className="grid grid-cols-3 gap-4">
-            {data.map((result: any) => (
-                <img key={result.frame} src={getImgUrl(result)} />
+        <div className="grid grid-cols-3 gap-2">
+            {data.map((result: any, i: number) => (
+                <div key={result.timestamp + result.episode + i} className="p-1">
+                    <img key={result.frame} src={getImgUrl(result)} className="box-border hover:outline hover:outline-8 hover:outline-theme-black"/>
+                </div>
             ))}
         </div>
     );

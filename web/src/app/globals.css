@@ -1,3 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+    font-family: 'DeFonteNormal';
+    src: url('/fonts/DeFonteReducedNormal.ttf') format('ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.font-de-fonte-normal {
+    font-family: 'DeFonteNormal', sans-serif;
+}

@@ -13,6 +13,24 @@ const config: Config = {
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
+      colors: {
+        "theme-red": "#C74A3E",
+        "theme-orange": "#FEA34b",
+        "theme-black": "#030303"
+      },
+      rotate: {
+        '-45': '-45deg',
+        '-30': '-30deg',
+        '-15': '-15deg',
+        '-10': '-10deg',
+        '-5': '-5deg',
+        '0': '0deg',
+        '5': '5deg',
+        '10': '10deg',
+        '15': '15deg',
+        '30': '30deg',
+        '45': '45deg',
+      },
     },
   },
   plugins: [],
