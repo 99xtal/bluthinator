@@ -7,6 +7,7 @@ type EpisodeData = {
     episode_number: number;
     season: number;
     title: string;
+    director: string;
     subtitles: {
         id: number;
         episode: string;
@@ -37,6 +38,7 @@ export default async function Page({ params }: { params: { key: string } }) {
         <div>
             <ScrollToAnchor />
             <h1 className={`${defonteRegular.className} text-2xl`}>Episode {data.season}x{data.episode_number} - {`"${data.title}"`}</h1>
+            <h3 className={`${defonteRegular.className} text-xl text-theme-red`}>Director: {data.director}</h3>
             <div>
                 {data.subtitles.map((subtitle, i) => (
                     <div key={subtitle.id} id={subtitle.frame_timestamp.toString()} className="p-4">

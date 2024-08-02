@@ -19,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} bg-theme-white`}>
-        <header className="sticky top-0 flex flex-row justify-between items-center px-16 py-4 bg-theme-white" >
+        <header className="sticky top-0 z-14 flex flex-row justify-between items-center px-16 py-4 bg-theme-white" >
           <Logo />
           <div className="p-4 bg-theme-orange flex justify-center">
             <Search placeholder="Search for something" />

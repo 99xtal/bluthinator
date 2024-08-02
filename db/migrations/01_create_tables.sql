@@ -11,6 +11,7 @@ CREATE TABLE episodes (
     season INT NOT NULL,
     episode_number INT NOT NULL,
     title TEXT NOT NULL,
+    director TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

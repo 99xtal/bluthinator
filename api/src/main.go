@@ -27,6 +27,7 @@ type Episode struct {
     EpisodeNumber    int        `json:"episode_number"`
     Season           int        `json:"season"`
     Title            string     `json:"title"`
+    Director         string     `json:"director"`
     Subtitles        []Subtitle `json:"subtitles"`
 }
 
@@ -51,6 +52,7 @@ func episodeHandler(w http.ResponseWriter, r *http.Request) {
             e.episode_number,
             e.season,
             e.title,
+            e.director,
             s.id,
             s.episode,
             s.text,
@@ -82,7 +84,7 @@ func episodeHandler(w http.ResponseWriter, r *http.Request) {
 
     for rows.Next() {
         var subtitle Subtitle
-        if err := rows.Scan(&episodeData.EpisodeNumber, &episodeData.Season, &episodeData.Title, &subtitle.ID, &subtitle.Episode, &subtitle.Text, &subtitle.StartTimestamp, &subtitle.EndTimestamp, &subtitle.FrameTimestamp); err != nil {
+        if err := rows.Scan(&episodeData.EpisodeNumber, &episodeData.Season, &episodeData.Title, &episodeData.Director, &subtitle.ID, &subtitle.Episode, &subtitle.Text, &subtitle.StartTimestamp, &subtitle.EndTimestamp, &subtitle.FrameTimestamp); err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
         }
