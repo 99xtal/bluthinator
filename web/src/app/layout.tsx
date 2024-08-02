@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 import Logo from "./ui/Logo";
 import Search from "./ui/Search";
@@ -20,7 +21,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} bg-theme-white`}>
         <header className="sticky top-0 z-14 flex flex-row justify-between items-center px-16 py-4 bg-theme-white" >
-          <Logo />
+          <Link href="/">
+            <Logo />
+          </Link>
           <div className="p-4 bg-theme-orange flex justify-center">
             <Search placeholder="Search for something" />
           </div>
