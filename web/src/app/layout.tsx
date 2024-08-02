@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import Logo from "./ui/Logo";
+import Search from "./ui/Search";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,7 +18,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <header className="flex flex-row justify-between items-center px-16 py-4" >
+          <Logo />
+          <div className="p-4 bg-theme-orange flex justify-center">
+            <Search placeholder="Search for something" />
+          </div>
+        </header>
+        <main className="py-4">
+          {children}
+        </main>
+      </body>
     </html>
   );
 }
