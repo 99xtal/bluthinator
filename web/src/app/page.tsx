@@ -1,4 +1,4 @@
-import SearchResult from "./ui/SearchResult";
+import FrameLink from "./ui/FrameLink";
 
 async function search(query: string): Promise<any> {
   const response = await fetch(`${process.env.API_HOST}/search?q=${query}`);
@@ -14,7 +14,7 @@ export default async function Home({ searchParams}: { searchParams: { q?: string
       <div className="grid grid-cols-3 gap-2">
         {data.map((result: any, i: number) => (
           <div key={result.timestamp + result.episode + i} className="p-1">
-            <SearchResult result={result} />
+            <FrameLink episode={result.episode} timestamp={result.timestamp} />
           </div>
         ))}
       </div>
