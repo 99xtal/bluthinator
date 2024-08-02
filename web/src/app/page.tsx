@@ -1,8 +1,6 @@
-import localFont from 'next/font/local'
+import Logo from "./ui/Logo";
 import Results from "./ui/Results";
 import Search from "./ui/Search";
-
-const myFont = localFont({ src: 'fonts/DeFonteReducedNormal.ttf' });
 
 export default function Home({ searchParams}: { searchParams: { q?: string; } }) {
   const query = searchParams?.q || '';
@@ -10,9 +8,7 @@ export default function Home({ searchParams}: { searchParams: { q?: string; } })
   return (
     <main>
       <header className="flex flex-row justify-between items-center px-16 py-4" >
-        <div className="transform -rotate-5">
-          <h1 className={`${myFont.className} text-3xl`}>bluthinator</h1>
-        </div>
+        <Logo />
         <div className="p-4 bg-theme-orange flex justify-center">
           <Search placeholder="Search for something" />
         </div>
