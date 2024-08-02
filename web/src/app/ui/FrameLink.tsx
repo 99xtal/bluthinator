@@ -4,7 +4,7 @@ import { getFrameUrl } from '../utils';
 
 export default function FrameLink({ episode, timestamp }: { episode: string, timestamp: number }) {
     return (
-        <Link href={`/episode/${episode}#${timestamp}`}>
+        <Link href={`/episode/${episode}/${timestamp}`}>
             <Image 
                 src={getFrameUrl(episode, timestamp)} 
                 alt={`${episode}: ${timestamp}`} 

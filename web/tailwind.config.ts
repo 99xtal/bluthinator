@@ -17,6 +17,7 @@ const config: Config = {
         "theme-white": "#F5F5F5",
         "theme-red": "#C74A3E",
         "theme-orange": "#FEA34b",
+        "theme-yellow": "#F8E5AD",
         "theme-black": "#030303"
       },
       rotate: {

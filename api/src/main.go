@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -13,6 +14,13 @@ import (
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 )
+
+
+type Frame struct {
+    ID        int    `json:"id"`
+    Episode   string `json:"episode"`
+    Timestamp int    `json:"timestamp"`
+}
 
 type Subtitle struct {
     ID              int    `json:"id"`
@@ -31,6 +39,12 @@ type Episode struct {
     Subtitles        []Subtitle `json:"subtitles"`
 }
 
+type FrameResponse struct {
+    Frame   Frame     `json:"frame"`
+    Episode Episode   `json:"episode"`
+    Subtitle Subtitle `json:"subtitle"`
+}
+
 var db *sql.DB
 
 var esClient *elasticsearch.Client
@@ -42,6 +56,7 @@ var cfg = elasticsearch.Config{
 	Username: os.Getenv("ELASTIC_USERNAME"),
 	Password: os.Getenv("ELASTIC_PASSWORD"),
   }
+
 
 func episodeHandler(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
@@ -105,6 +120,72 @@ func episodeHandler(w http.ResponseWriter, r *http.Request) {
 
     w.Header().Set("Content-Type", "application/json")
     if err := json.NewEncoder(w).Encode(episodeData); err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+}
+
+func frameHandler(w http.ResponseWriter, r *http.Request) {
+    vars := mux.Vars(r)
+    episode := vars["key"]
+    timestamp := vars["timestamp"]
+
+    query := `
+        SELECT
+            f.id,
+            f.timestamp,
+            f.episode,
+            s.id,
+            s.episode,
+            s.text,
+            s.start_timestamp,
+            s.end_timestamp,
+            e.episode_number,
+            e.season,
+            e.title,
+            e.director
+        FROM frames f
+            JOIN episodes e ON e.key = f.episode
+            JOIN subtitles s on f.episode = s.episode
+        WHERE f.timestamp = $1
+            AND f.episode = $2
+            AND f.timestamp BETWEEN s.start_timestamp AND s.end_timestamp;
+    `
+
+    var frameResponse FrameResponse
+    var frameData Frame
+    var subtitleData Subtitle
+    var episodeData Episode
+
+    err := db.QueryRow(query, timestamp, episode).Scan(
+        &frameData.ID,
+        &frameData.Timestamp,
+        &frameData.Episode,
+        &subtitleData.ID,
+        &subtitleData.Episode,
+        &subtitleData.Text,
+        &subtitleData.StartTimestamp,
+        &subtitleData.EndTimestamp,
+        &episodeData.EpisodeNumber,
+        &episodeData.Season,
+        &episodeData.Title,
+        &episodeData.Director,
+    )
+    if err != nil {
+        if err == sql.ErrNoRows {
+            http.Error(w, "No matching records found", http.StatusNotFound)
+        } else {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+        }
+        return
+    }
+
+    frameResponse.Frame = frameData
+    frameResponse.Episode = episodeData
+    frameResponse.Subtitle = subtitleData
+
+    w.Header().Set("Content-Type", "application/json")
+    if err := json.NewEncoder(w).Encode(frameResponse); err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
     }
@@ -189,6 +270,7 @@ func main() {
 
     // Initialize the PostgreSQL database connection
     connStr := "host=" + os.Getenv("POSTGRES_HOST") + " user=" + os.Getenv("POSTGRES_USER") + " dbname=" + os.Getenv("POSTGRES_DB") + " sslmode=disable password=" + os.Getenv("POSTGRES_PASSWORD") + " port=5432"
+    fmt.Println(connStr)
     db, err = sql.Open("postgres", connStr)
     if err != nil {
         log.Fatalf("Error connecting to the database: %s", err)
@@ -199,6 +281,7 @@ func main() {
 
 	// Routes
     router.HandleFunc("/episode/{key}", episodeHandler).Methods("GET")
+    router.HandleFunc("/episode/{key}/{timestamp}", frameHandler).Methods("GET")
 	router.HandleFunc("/search", searchHandler).Methods("GET")
 
 	// Start the server

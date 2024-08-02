@@ -2,6 +2,7 @@ import { defonteRegular } from "~/app/fonts";
 
 import FrameLink from "~/app/ui/FrameLink";
 import ScrollToAnchor from "~/app/ui/ScrollToAnchor";
+import { msToTime } from "~/app/utils";
 
 type EpisodeData = {
     episode_number: number;
@@ -16,14 +17,6 @@ type EpisodeData = {
         end_timestamp: number;
         frame_timestamp: number;
     }[]
-}
-
-const msToTime = (ms: number) => {
-    const totalSeconds = Math.floor(ms / 1000);
-    const minutes = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
-    const seconds = (totalSeconds % 60).toString().padStart(2, '0');
-    
-    return `${minutes}:${seconds}`;
 }
 
 async function getEpisode(key: string) {
