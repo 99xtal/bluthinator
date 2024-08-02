@@ -3,13 +3,34 @@ package main
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/gorilla/mux"
+	_ "github.com/lib/pq"
 )
+
+type Subtitle struct {
+    ID              int    `json:"id"`
+    Episode         string `json:"episode"`
+    Text            string `json:"text"`
+    StartTimestamp  int    `json:"start_timestamp"`
+    EndTimestamp    int    `json:"end_timestamp"`
+    FrameTimestamp  int    `json:"frame_timestamp"`
+}
+
+type Episode struct {
+    EpisodeNumber    int        `json:"episode_number"`
+    Season           int        `json:"season"`
+    Title            string     `json:"title"`
+    Subtitles        []Subtitle `json:"subtitles"`
+}
+
+var db *sql.DB
 
 var esClient *elasticsearch.Client
 
@@ -17,11 +38,77 @@ var cfg = elasticsearch.Config{
 	Addresses: []string{
 	  "http://elasticsearch:9200",
 	},
-	Username: "elastic",
-	Password: "elastic",
+	Username: os.Getenv("ELASTIC_USERNAME"),
+	Password: os.Getenv("ELASTIC_PASSWORD"),
   }
 
-func searchFrames(w http.ResponseWriter, r *http.Request) {
+func episodeHandler(w http.ResponseWriter, r *http.Request) {
+    vars := mux.Vars(r)
+    episode := vars["key"]
+
+    query := `
+        SELECT 
+            e.episode_number,
+            e.season,
+            e.title,
+            s.id,
+            s.episode,
+            s.text,
+            s.start_timestamp,
+            s.end_timestamp,
+            f.timestamp
+        FROM subtitles s
+            JOIN frames f ON s.episode = f.episode
+                AND f.timestamp BETWEEN s.start_timestamp AND s.end_timestamp
+            JOIN episodes e on f.episode = e.key
+        WHERE s.episode = $1
+            AND f.id = (
+                SELECT MIN(f2.id)
+                FROM frames f2
+                WHERE f2.episode = s.episode
+                AND f2.timestamp BETWEEN s.start_timestamp AND s.end_timestamp
+            )
+    `
+
+    rows, err := db.Query(query, episode)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+    defer rows.Close()
+
+    var episodeData Episode
+    var subtitles []Subtitle
+
+    for rows.Next() {
+        var subtitle Subtitle
+        if err := rows.Scan(&episodeData.EpisodeNumber, &episodeData.Season, &episodeData.Title, &subtitle.ID, &subtitle.Episode, &subtitle.Text, &subtitle.StartTimestamp, &subtitle.EndTimestamp, &subtitle.FrameTimestamp); err != nil {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
+        subtitles = append(subtitles, subtitle)
+    }
+
+    if err := rows.Err(); err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    if len(subtitles) == 0 {
+        http.Error(w, "Episode not found", http.StatusNotFound)
+        return
+    }
+
+    episodeData.Subtitles = subtitles
+
+    w.Header().Set("Content-Type", "application/json")
+    if err := json.NewEncoder(w).Encode(episodeData); err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+}
+
+func searchHandler(w http.ResponseWriter, r *http.Request) {
     // Get the query string
     query := r.URL.Query().Get("q")
 
@@ -91,18 +178,29 @@ func searchFrames(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+    // Initialize the Elasticsearch client
 	var err error
 	esClient, err = elasticsearch.NewClient(cfg)
     if err != nil {
         log.Fatalf("Error creating the client: %s", err)
     }
 
+    // Initialize the PostgreSQL database connection
+    connStr := "user=" + os.Getenv("POSTGRES_USER") + " dbname=" + os.Getenv("POSTGRES_DB") + " sslmode=disable password=" + os.Getenv("POSTGRES_PASSWORD") + " port=5432"
+    db, err = sql.Open("postgres", connStr)
+    if err != nil {
+        log.Fatalf("Error connecting to the database: %s", err)
+    }
+    defer db.Close()
+
 	router := mux.NewRouter()
 
 	// Routes
-	router.HandleFunc("/search", searchFrames).Methods("GET")
+    router.HandleFunc("/episode/{key}", episodeHandler).Methods("GET")
+	router.HandleFunc("/search", searchHandler).Methods("GET")
 
 	// Start the server
-	log.Println("Server is running on port 8000")
-	log.Fatal(http.ListenAndServe(":8000", router))
+    port := ":8000"
+	log.Println("Server listening on port", port)
+	log.Fatal(http.ListenAndServe(port, router))
 }
