@@ -40,6 +40,7 @@ func main() {
 	// Routes
     router.HandleFunc("/episode/{key}", server.GetEpisodeData).Methods("GET")
     router.HandleFunc("/episode/{key}/{timestamp}", server.GetEpisodeFrame).Methods("GET")
+	router.HandleFunc("/nearby", server.GetNearbyFrames).Methods("GET")
 	router.HandleFunc("/search", server.SearchFrames).Methods("GET")
 
 	// Start the server
