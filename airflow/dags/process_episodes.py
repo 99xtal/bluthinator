@@ -126,7 +126,7 @@ def process_episodes():
         frame_number = 0
         frame_metadata = []
         chunk_factor = 10
-        threshold = 400
+        threshold = 350
         prev_frame_avg_colors = None
         episode_key = os.path.splitext(os.path.basename(video_file_path))[0]
         output_dir = f'/tmp/frames/{episode_key}'
@@ -134,6 +134,7 @@ def process_episodes():
         # Start the ffmpeg process
         process = ffmpeg.input(video_file_path).output('pipe:', format='rawvideo', pix_fmt='rgb24').run_async(pipe_stdout=True)
 
+        num_saved_frames = 0
         while True:
             in_bytes = process.stdout.read(frame_size)
             if not in_bytes:
@@ -147,6 +148,7 @@ def process_episodes():
 
             diff = utils.color_difference(prev_frame_avg_colors, frame_avg_colors)
             if (diff > threshold):
+                print(f'Saving frame {frame_number} with diff {diff}')
                 timestamp = utils.frame_to_timestamp_ms(frame_number, frame_rate)
 
                 # Convert the raw video frame to a PNG image
@@ -168,9 +170,12 @@ def process_episodes():
                     'episode': episode_key
                 })
                 prev_frame_avg_colors = frame_avg_colors
+                num_saved_frames += 1
 
             frame_number += 1
 
+        print(f'Saved {num_saved_frames} frames')
+        print(f'Frame metadata length: {len(frame_metadata)}')
         return { 'output_dir': output_dir, 'frame_metadata': frame_metadata }
 
     @task
