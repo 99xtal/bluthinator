@@ -269,7 +269,7 @@ func main() {
     }
 
     // Initialize the PostgreSQL database connection
-    connStr := "host=" + os.Getenv("POSTGRES_HOST") + " user=" + os.Getenv("POSTGRES_USER") + " dbname=" + os.Getenv("POSTGRES_DB") + " sslmode=disable password=" + os.Getenv("POSTGRES_PASSWORD") + " port=5432"
+    connStr := "host=" + os.Getenv("POSTGRES_HOST") + " user=" + os.Getenv("POSTGRES_USER") + " dbname=" + os.Getenv("POSTGRES_DB") + " sslmode=disable password=" + os.Getenv("POSTGRES_PASSWORD") + " port=" + os.Getenv("POSTGRES_PORT")
     fmt.Println(connStr)
     db, err = sql.Open("postgres", connStr)
     if err != nil {
