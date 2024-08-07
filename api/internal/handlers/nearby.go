@@ -25,7 +25,7 @@ func (s *Server) GetNearbyFrames(w http.ResponseWriter, r *http.Request) {
         (SELECT id, episode, timestamp FROM frames
          WHERE episode = $1 AND timestamp >= $2
          ORDER BY timestamp ASC
-         LIMIT 3)
+         LIMIT 4)
         ORDER BY timestamp;
     `
 

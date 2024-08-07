@@ -2,7 +2,13 @@ import Image from 'next/image';
 import Link from "next/link";
 import { getFrameUrl } from '../utils';
 
-export default function FrameLink({ episode, timestamp }: { episode: string, timestamp: number }) {
+interface Props {
+    episode: string;
+    timestamp: number;
+    className?: string;
+}
+
+export default function FrameLink({ episode, timestamp, className }: Props) {
     return (
         <Link href={`/episode/${episode}/${timestamp}`}>
             <Image 
@@ -10,7 +16,7 @@ export default function FrameLink({ episode, timestamp }: { episode: string, tim
                 alt={`${episode}: ${timestamp}`} 
                 width={400} 
                 height={240} 
-                className="box-border hover:outline hover:outline-8 hover:outline-theme-black" 
+                className={"box-border hover:outline hover:outline-8 hover:outline-theme-black" + (className ? ` ${className}` : '')}
             />
         </Link>
     )
