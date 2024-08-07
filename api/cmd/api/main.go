@@ -8,11 +8,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
+
+	"github.com/99xtal/bluthinator/api/internal/config"
 )
 
 
@@ -48,15 +49,6 @@ type FrameResponse struct {
 var db *sql.DB
 
 var esClient *elasticsearch.Client
-
-var cfg = elasticsearch.Config{
-	Addresses: []string{
-	  "http://elasticsearch:9200",
-	},
-	Username: os.Getenv("ELASTIC_USERNAME"),
-	Password: os.Getenv("ELASTIC_PASSWORD"),
-  }
-
 
 func episodeHandler(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
@@ -261,15 +253,17 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+    config := config.New()
+
     // Initialize the Elasticsearch client
 	var err error
-	esClient, err = elasticsearch.NewClient(cfg)
+	esClient, err = elasticsearch.NewClient(config.GetElasticSearchConfig())
     if err != nil {
         log.Fatalf("Error creating the client: %s", err)
     }
 
     // Initialize the PostgreSQL database connection
-    connStr := "host=" + os.Getenv("POSTGRES_HOST") + " user=" + os.Getenv("POSTGRES_USER") + " dbname=" + os.Getenv("POSTGRES_DB") + " sslmode=disable password=" + os.Getenv("POSTGRES_PASSWORD") + " port=" + os.Getenv("POSTGRES_PORT")
+    connStr := config.GetPostgresConnString()
     fmt.Println(connStr)
     db, err = sql.Open("postgres", connStr)
     if err != nil {
@@ -285,7 +279,7 @@ func main() {
 	router.HandleFunc("/search", searchHandler).Methods("GET")
 
 	// Start the server
-    port := ":8000"
+    port := ":" + config.ServerPort
 	log.Println("Server listening on port", port)
 	log.Fatal(http.ListenAndServe(port, router))
 }
