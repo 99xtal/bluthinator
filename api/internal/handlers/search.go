@@ -23,6 +23,15 @@ func (s *Server) SearchFrames(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
+	if (query == "") {
+		searchBody = map[string]interface{}{
+			"_source": []string{"episode", "subtitle", "timestamp"},
+			"query": map[string]interface{}{
+				"match_all": map[string]interface{}{},
+			},
+		}
+	}
+
 	// Encode the search body to JSON
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(searchBody); err != nil {
