@@ -100,6 +100,7 @@ services:
       - POSTGRES_PORT=5432
       - ELASTIC_USERNAME=${ELASTIC_USERNAME}
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTIC_HOST=elasticsearch
     depends_on:
       db:
         condition: service_healthy
