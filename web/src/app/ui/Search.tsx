@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDebouncedCallback } from 'use-debounce';
 
-export default function Search({ placeholder }: { placeholder: string}) {
+export default function Search({ placeholder, className }: { placeholder: string, className?: string }) {
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const { push, replace } = useRouter();  
@@ -30,6 +30,7 @@ export default function Search({ placeholder }: { placeholder: string}) {
                 handleSearch(e.target.value);
             }} 
             defaultValue={searchParams.get('q')?.toString()}
+            className={className}
         />
     )
 }

@@ -20,12 +20,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} bg-theme-white`}>
-        <header className="sticky top-0 z-14 flex flex-row justify-between items-center px-16 py-4 bg-theme-white" >
+        <header className="sticky top-0 z-14 flex flex-row justify-center items-center pl-8 py-4 gap-64 bg-theme-white" >
           <Link href="/">
             <Logo />
           </Link>
-          <div className="p-4 bg-theme-orange flex justify-center">
-            <Search placeholder="Search for something" />
+          <div className="px-8 py-4 bg-theme-orange flex flex-grow">
+            <Search 
+              placeholder="Search for something" 
+              className="w-full border border-gray-300 rounded-full p-2 focus:outline-none focus:ring-2 focus:ring-gray-400 hover:border-gray-400"
+            />
           </div>
         </header>
         <main className="container mx-auto py-4">
