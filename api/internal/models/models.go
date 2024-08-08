@@ -33,5 +33,5 @@ type EpisodeResponse struct {
 type FrameResponse struct {
     Frame   Frame     `json:"frame"`
     Episode Episode   `json:"episode"`
-    Subtitle Subtitle `json:"subtitle"`
+    Subtitle *Subtitle `json:"subtitle"`
 }

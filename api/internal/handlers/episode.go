@@ -98,10 +98,10 @@ func (s *Server) GetEpisodeFrame(w http.ResponseWriter, r *http.Request) {
             e.director
         FROM frames f
             JOIN episodes e ON e.key = f.episode
-            JOIN subtitles s on f.episode = s.episode
+            LEFT JOIN subtitles s ON f.timestamp 
+                BETWEEN s.start_timestamp AND s.end_timestamp
         WHERE f.timestamp = $1
             AND f.episode = $2
-            AND f.timestamp BETWEEN s.start_timestamp AND s.end_timestamp;
     `
 
     var frameResponse models.FrameResponse
@@ -109,15 +109,21 @@ func (s *Server) GetEpisodeFrame(w http.ResponseWriter, r *http.Request) {
     var subtitleData models.Subtitle
     var episodeData models.Episode
 
+    var subtitleID sql.NullInt64
+    var subtitleEpisode sql.NullString
+    var subtitleText sql.NullString
+    var subtitleStartTimestamp sql.NullInt64
+    var subtitleEndTimestamp sql.NullInt64
+
     err := s.DB.QueryRow(query, timestamp, episode).Scan(
         &frameData.ID,
         &frameData.Timestamp,
         &frameData.Episode,
-        &subtitleData.ID,
-        &subtitleData.Episode,
-        &subtitleData.Text,
-        &subtitleData.StartTimestamp,
-        &subtitleData.EndTimestamp,
+        &subtitleID,
+        &subtitleEpisode,
+        &subtitleText,
+        &subtitleStartTimestamp,
+        &subtitleEndTimestamp,
         &episodeData.EpisodeNumber,
         &episodeData.Season,
         &episodeData.Title,
@@ -128,13 +134,36 @@ func (s *Server) GetEpisodeFrame(w http.ResponseWriter, r *http.Request) {
             http.Error(w, "No matching records found", http.StatusNotFound)
         } else {
             http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
         }
-        return
     }
 
+    // Check if all subtitle fields are NULL
+    if !subtitleID.Valid && !subtitleEpisode.Valid && !subtitleText.Valid && !subtitleStartTimestamp.Valid && !subtitleEndTimestamp.Valid {
+        frameResponse.Subtitle = nil
+    } else {
+        // Handle NULL subtitle fields
+        if subtitleID.Valid {
+            subtitleData.ID = int(subtitleID.Int64)
+        }
+        if subtitleEpisode.Valid {
+            subtitleData.Episode = subtitleEpisode.String
+        }
+        if subtitleText.Valid {
+            subtitleData.Text = subtitleText.String
+        }
+        if subtitleStartTimestamp.Valid {
+            subtitleData.StartTimestamp = int(subtitleStartTimestamp.Int64)
+        }
+        if subtitleEndTimestamp.Valid {
+            subtitleData.EndTimestamp = int(subtitleEndTimestamp.Int64)
+        }
+        frameResponse.Subtitle = &subtitleData
+    }
+
+    // Populate frameResponse with the data
     frameResponse.Frame = frameData
     frameResponse.Episode = episodeData
-    frameResponse.Subtitle = subtitleData
 
     w.Header().Set("Content-Type", "application/json")
     if err := json.NewEncoder(w).Encode(frameResponse); err != nil {
