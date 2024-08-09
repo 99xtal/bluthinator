@@ -18,12 +18,12 @@ export default function FrameDetails({ frame, episode, subtitle }: { frame: Fram
 
     return (
 		<div className="flex lg:flex-row flex-col gap-8">
-			<div className="relative flex flex-2">
+			<div className="relative flex flex-1">
 				<Image
 					src={getFrameUrl(frame.episode, frame.timestamp, 'large')}
 					alt={subtitle?.text || frame.episode + ' ' + frame.timestamp}
-					width={800}
-					height={500}
+					width={640}
+					height={360}
 					className="w-full h-auto outline outline-8 outline-theme-black"
 				/>
 				{isMemeMode && (

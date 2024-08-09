@@ -13,6 +13,22 @@ export const metadata: Metadata = {
   description: "An Arrested Development search engine",
 };
 
+const references = [
+  "There's always money in the banana stand.",
+  "I've made a huge mistake.",
+  "I'm a monster!",
+  "Her?",
+  "Hey brother",
+  "I'm afraid I just blue myself.",
+  "That was a freebie.",
+  "Marry me!",
+  "No touching!",
+]
+
+function genSearchPlaceholder() {
+  return `Search for quotes (like "${references[Math.floor(Math.random() * references.length)]}")`;
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,7 +44,7 @@ export default function RootLayout({
           <div className="px-8 py-4 bg-theme-orange flex flex-grow">
             <Suspense>
               <Search 
-                placeholder="Search for something" 
+                placeholder={genSearchPlaceholder()} 
                 className="w-full border border-gray-300 rounded-full p-2 focus:outline-none focus:ring-2 focus:ring-gray-400 hover:border-gray-400"
               />
             </Suspense>
