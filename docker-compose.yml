@@ -105,6 +105,18 @@ services:
       db:
         condition: service_healthy
 
+  web:
+    build: ./web
+    container_name: web
+    ports:
+      - "3000:3000"
+    environment:
+      - API_HOST=http://api:8000
+      - NEXT_PUBLIC_IMG_HOST=http://minio:9000
+    depends_on:
+      - api
+      - minio
+
   airflow-webserver:
     <<: *airflow-common
     profiles:
