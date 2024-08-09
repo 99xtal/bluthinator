@@ -4,6 +4,7 @@ import Link from "next/link";
 import "./globals.css";
 import Logo from "./ui/Logo";
 import Search from "./ui/Search";
+import { Suspense } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,10 +26,12 @@ export default function RootLayout({
             <Logo />
           </Link>
           <div className="px-8 py-4 bg-theme-orange flex flex-grow">
-            <Search 
-              placeholder="Search for something" 
-              className="w-full border border-gray-300 rounded-full p-2 focus:outline-none focus:ring-2 focus:ring-gray-400 hover:border-gray-400"
-            />
+            <Suspense>
+              <Search 
+                placeholder="Search for something" 
+                className="w-full border border-gray-300 rounded-full p-2 focus:outline-none focus:ring-2 focus:ring-gray-400 hover:border-gray-400"
+              />
+            </Suspense>
           </div>
         </header>
         <main className="container mx-auto py-4">
