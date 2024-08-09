@@ -112,7 +112,7 @@ services:
       - "3000:3000"
     environment:
       - API_HOST=http://api:8000
-      - NEXT_PUBLIC_IMG_HOST=http://minio:9000
+      - NEXT_PUBLIC_IMG_HOST=http://minio:9000/bluthinator
     depends_on:
       - api
       - minio
