@@ -8,8 +8,6 @@ import numpy as np
 from PIL import Image
 import psycopg2
 from psycopg2 import sql
-import pysrt
-import re
 import utils
 
 @dag(
@@ -35,87 +33,6 @@ def process_episodes():
             client.fget_object('bluthinator', obj.object_name, video_path)
             local_video_paths.append(video_path)
         return local_video_paths
-    
-    @task
-    def extract_subtitle_file_from_video(video_file_path):
-        subtitle_path = video_file_path.replace('.mkv', '.srt')
-        ffmpeg.input(video_file_path).output(subtitle_path, format='srt').run(capture_stdout=True, capture_stderr=True, overwrite_output=True)
-        return subtitle_path
-    
-    @task
-    def transform_subtitles(srt_path):
-        subs = pysrt.open(srt_path)
-
-        episode_key = os.path.splitext(os.path.basename(srt_path))[0]
-
-        subtitle_records = []
-        for sub in subs:
-            subtitle_records.append({
-                'text': utils.clean_subtitle_text(sub.text),
-                'start_timestamp': utils.sub_timestamp_to_ms(sub.start),
-                'end_timestamp': utils.sub_timestamp_to_ms(sub.end),
-                'episode': episode_key
-            })
-        
-        return subtitle_records
-    
-    @task
-    def load_subtitle_file_to_object_storage(subtitle_file_path):
-        print(f'Uploading {subtitle_file_path} to object storage')
-        client = Minio(
-            endpoint="minio:9000",
-            access_key=os.getenv("MINIO_ACCESS_KEY"),
-            secret_key=os.getenv("MINIO_SECRET_KEY"),
-            secure=False
-        )
-
-        bucket_name = 'bluthinator'
-        object_name = f'subtitles/{os.path.basename(subtitle_file_path)}'
-        
-        client.fput_object(
-            bucket_name=bucket_name,
-            object_name=object_name,
-            file_path=subtitle_file_path
-        )
-    
-    @task
-    def load_subtitles_to_db(subtitle_records):
-        print(f'Loading {len(subtitle_records)} subtitle records to the database')
-
-        # Database connection parameters
-        db_params = {
-            'dbname': os.getenv('POSTGRES_DB'),
-            'user': os.getenv('POSTGRES_USER'),
-            'password': os.getenv('POSTGRES_PASSWORD'),
-            'host': os.getenv('POSTGRES_HOST', 'db'),
-            'port': os.getenv('POSTGRES_PORT', 5432)
-        }
-
-        # Connect to the PostgreSQL database
-        conn = psycopg2.connect(**db_params)
-        cursor = conn.cursor()
-
-        # Delete existing records with the same episode field
-        delete_query = sql.SQL("""
-            DELETE FROM subtitles WHERE episode = %s
-        """)
-        cursor.execute(delete_query, (subtitle_records[0]['episode'],))
-
-        # Insert subtitle records into the subtitles table
-        insert_query = sql.SQL("""
-            INSERT INTO subtitles (episode, text, start_timestamp, end_timestamp) VALUES (%s, %s, %s, %s)
-        """)
-
-        for (i, record) in enumerate(subtitle_records):
-            print(f'[{i + 1}/{len(subtitle_records)}] {record}')
-            cursor.execute(insert_query, (record['episode'], record['text'], record['start_timestamp'], record['end_timestamp']))
-
-        # Commit the transaction and close the connection
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-        return None
     
     @task(multiple_outputs=True)
     def extract_video_frames(video_file_path):
@@ -252,12 +169,6 @@ def process_episodes():
             )
 
     video_file_paths = extract_video_files()
-    subtitle_file_paths = extract_subtitle_file_from_video.expand(video_file_path=video_file_paths)
-
-    subtitle_records = transform_subtitles.expand(srt_path=subtitle_file_paths)
-    load_subtitle_file_to_object_storage.expand(subtitle_file_path=subtitle_file_paths)
-
-    subtitle_records >> load_subtitles_to_db.expand(subtitle_records=subtitle_records)
 
     outputs = extract_video_frames.expand(video_file_path=video_file_paths)
     frame_metadata_list = outputs.map(lambda x: x['frame_metadata'])

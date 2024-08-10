@@ -1,8 +1,6 @@
 import ffmpeg
 import math
-import pysrt
 import numpy as np
-import re
 
 def get_video_dimensions(video_path: str):
     # Use ffprobe to get the metadata of the video file
@@ -38,28 +36,3 @@ def color_difference(avg_colors_1, avg_colors_2):
 
 def frame_to_timestamp_ms(frame_number, frame_rate):
     return frame_number * 1000 // frame_rate
-
-def sub_timestamp_to_ms(timestamp: pysrt.SubRipTime) -> int:
-    # Split the timestamp into hours, minutes, seconds, and milliseconds
-    timestamp_str = str(timestamp)
-    hours, minutes, seconds_milliseconds = timestamp_str.split(':')
-    seconds, milliseconds = seconds_milliseconds.split(',')
-    
-    # Convert each part to milliseconds
-    hours_ms = int(hours) * 3600000
-    minutes_ms = int(minutes) * 60000
-    seconds_ms = int(seconds) * 1000
-    milliseconds = int(milliseconds)
-    
-    # Sum all parts to get the total milliseconds
-    total_ms = hours_ms + minutes_ms + seconds_ms + milliseconds
-    return total_ms
-
-def clean_subtitle_text(subtitle):
-    # Remove style tags (e.g., <i>...</i>)
-    subtitle = re.sub(r'<[^>]+>', '', subtitle)
-    # Replace newline characters with spaces
-    subtitle = subtitle.replace('\n', ' ')
-    # Remove extra spaces
-    subtitle = ' '.join(subtitle.split())
-    return subtitle
