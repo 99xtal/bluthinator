@@ -18,6 +18,7 @@ func (s *Server) GetEpisodeData(w http.ResponseWriter, r *http.Request) {
 		WITH closest_frame_id AS (
 			SELECT f2.id as id
 			FROM frames f2
+				JOIN subtitles s ON f2.episode = s.episode
 			WHERE f2.episode = $1
 			AND f2.timestamp BETWEEN s.start_timestamp AND s.end_timestamp
 			ORDER BY ABS(f2.timestamp - ((s.start_timestamp + s.end_timestamp) / 2))
