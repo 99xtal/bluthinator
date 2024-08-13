@@ -12,6 +12,7 @@ import (
 
 	"github.com/99xtal/bluthinator/api/internal/config"
 	"github.com/99xtal/bluthinator/api/internal/handlers"
+	"github.com/99xtal/bluthinator/api/internal/services"
 )
 
 func main() {
@@ -32,7 +33,10 @@ func main() {
 	}
 	defer db.Close()
 
-	server := handlers.NewServer(db, esClient)
+	// Initialize object storage client
+	storageClient := services.NewStorageClient(config.ObjectStorageEndpoint)
+
+	server := handlers.NewServer(db, esClient, storageClient)
 
 	router := mux.NewRouter()
 
@@ -41,6 +45,7 @@ func main() {
 	router.HandleFunc("/episode/{key}/{timestamp}", server.GetEpisodeFrame).Methods("GET")
 	router.HandleFunc("/nearby", server.GetNearbyFrames).Methods("GET")
 	router.HandleFunc("/search", server.SearchFrames).Methods("GET")
+	router.HandleFunc("/caption/{key}/{timestamp}", server.GetCaptionedFrame).Methods("GET")
 	router.HandleFunc("/healthcheck", server.HealthCheck).Methods("GET")
 
 	// Configure CORS

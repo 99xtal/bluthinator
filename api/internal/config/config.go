@@ -7,16 +7,17 @@ import (
 )
 
 type Config struct {
-	PostgresHost    string
-	PostgresPort    string
-	PostgresUser    string
-	PostgresPass    string
-	PostgresDB      string
-	ElasticHost     string
-	ElasticPort     string
-	ElasticUser     string
-	ElasticPass     string
-	ServerPort      string
+	PostgresHost          string
+	PostgresPort          string
+	PostgresUser          string
+	PostgresPass          string
+	PostgresDB            string
+	ElasticHost           string
+	ElasticPort           string
+	ElasticUser           string
+	ElasticPass           string
+	ObjectStorageEndpoint string
+	ServerPort            string
 }
 
 func (c *Config) GetPostgresConnString() string {
@@ -34,26 +35,26 @@ func (c *Config) GetElasticSearchConfig() elasticsearch.Config {
 	return cfg
 }
 
-
 func getEnv(key, defaultValue string) string {
-    value := os.Getenv(key)
-    if value == "" {
-        return defaultValue
-    }
-    return value
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	return value
 }
 
 func New() *Config {
 	return &Config{
-        PostgresHost: getEnv("POSTGRES_HOST", "localhost"),
-        PostgresPort: getEnv("POSTGRES_PORT", "5432"),
-        PostgresUser: getEnv("POSTGRES_USER", "default_user"),
-        PostgresPass: getEnv("POSTGRES_PASSWORD", "default_pass"),
-        PostgresDB:   getEnv("POSTGRES_DB", "default_db"),
-        ElasticHost:  getEnv("ELASTIC_HOST", "localhost"),
-        ElasticPort:  getEnv("ELASTIC_PORT", "9200"),
-        ElasticUser:  getEnv("ELASTIC_USER", "default_user"),
-        ElasticPass:  getEnv("ELASTIC_PASS", "default_pass"),
-        ServerPort:   getEnv("SERVER_PORT", "8000"),
+		PostgresHost:          getEnv("POSTGRES_HOST", "localhost"),
+		PostgresPort:          getEnv("POSTGRES_PORT", "5432"),
+		PostgresUser:          getEnv("POSTGRES_USER", "default_user"),
+		PostgresPass:          getEnv("POSTGRES_PASSWORD", "default_pass"),
+		PostgresDB:            getEnv("POSTGRES_DB", "default_db"),
+		ElasticHost:           getEnv("ELASTIC_HOST", "localhost"),
+		ElasticPort:           getEnv("ELASTIC_PORT", "9200"),
+		ElasticUser:           getEnv("ELASTIC_USER", "default_user"),
+		ElasticPass:           getEnv("ELASTIC_PASS", "default_pass"),
+		ObjectStorageEndpoint: getEnv("OBJECT_STORAGE_ENDPOINT", "http://localhost:9000"),
+		ServerPort:            getEnv("SERVER_PORT", "8000"),
 	}
 }
