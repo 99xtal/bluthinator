@@ -32,11 +32,12 @@ func (s *Server) GetEpisodeData(w http.ResponseWriter, r *http.Request) {
             JOIN episodes e ON f.episode = e.key
         WHERE s.episode = $1
             AND f.id = (
-                SELECT MIN(f2.id)
+                SELECT f2.id
                 FROM frames f2
                 WHERE f2.episode = s.episode
                 AND f2.timestamp BETWEEN s.start_timestamp AND s.end_timestamp
                 ORDER BY ABS(f2.timestamp - ((s.start_timestamp + s.end_timestamp) / 2))
+				LIMIT 1
             );
     `
 
