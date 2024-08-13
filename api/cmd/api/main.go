@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -27,7 +26,6 @@ func main() {
 
 	// Initialize the PostgreSQL database connection
 	connStr := config.GetPostgresConnString()
-	fmt.Println(connStr)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatalf("Error connecting to the database: %s", err)
@@ -43,6 +41,7 @@ func main() {
 	router.HandleFunc("/episode/{key}/{timestamp}", server.GetEpisodeFrame).Methods("GET")
 	router.HandleFunc("/nearby", server.GetNearbyFrames).Methods("GET")
 	router.HandleFunc("/search", server.SearchFrames).Methods("GET")
+	router.HandleFunc("/healthcheck", server.HealthCheck).Methods("GET")
 
 	// Configure CORS
 	c := cors.New(cors.Options{

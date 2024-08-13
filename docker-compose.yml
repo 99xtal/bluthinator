@@ -101,6 +101,12 @@ services:
       - ELASTIC_USERNAME=${ELASTIC_USERNAME}
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - ELASTIC_HOST=elasticsearch
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/healthcheck || exit 1"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
     depends_on:
       db:
         condition: service_healthy
@@ -112,10 +118,12 @@ services:
       - "3000:3000"
     environment:
       - API_HOST=http://api:8000
-      - NEXT_PUBLIC_IMG_HOST=http://minio:9000/bluthinator
+      - NEXT_PUBLIC_IMG_HOST=http://homelab:9000/bluthinator
     depends_on:
-      - api
-      - minio
+      api:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
 
   airflow-webserver:
     <<: *airflow-common
