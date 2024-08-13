@@ -20,7 +20,7 @@ func (s *Server) GetEpisodeData(w http.ResponseWriter, r *http.Request) {
 			FROM frames f2
 			WHERE f2.episode = $1
 			AND f2.timestamp BETWEEN s.start_timestamp AND s.end_timestamp
-			ORDER BY ABS(f2.timestamp - ((s.start_timestamp + s.end_timestamp) / 2)))
+			ORDER BY ABS(f2.timestamp - ((s.start_timestamp + s.end_timestamp) / 2))
 			LIMIT 1
 		)
 		SELECT 
