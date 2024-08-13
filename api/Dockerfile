@@ -1,6 +1,9 @@
 # Use the official Golang image as the base image
 FROM golang:1.20-alpine
 
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+
 # Set the Current Working Directory inside the container
 WORKDIR /app
 
