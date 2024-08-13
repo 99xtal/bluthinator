@@ -40,7 +40,7 @@ func (s *Server) GetEpisodeData(w http.ResponseWriter, r *http.Request) {
 			AND f.timestamp BETWEEN s.start_timestamp AND s.end_timestamp
 			AND f.id = (SELECT id FROM closest_frame_id)
 		JOIN episodes e ON f.episode = e.key
-		WHERE s.episode = $1;
+		WHERE s.episode = $1
 		ORDER BY s.start_timestamp ASC;
     `
 
