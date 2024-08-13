@@ -15,33 +15,29 @@ func (s *Server) GetEpisodeData(w http.ResponseWriter, r *http.Request) {
 	episode := vars["key"]
 
 	query := `
-		WITH closest_frame_id AS (
-			SELECT f2.id as id
-			FROM frames f2
-				JOIN subtitles s ON f2.episode = s.episode
-			WHERE f2.episode = $1
-			AND f2.timestamp BETWEEN s.start_timestamp AND s.end_timestamp
-			ORDER BY ABS(f2.timestamp - ((s.start_timestamp + s.end_timestamp) / 2))
-			LIMIT 1
-		)
 		SELECT 
-			e.episode_number,
-			e.season,
-			e.title,
-			e.director,
-			s.id,
-			s.episode,
-			s.text,
-			s.start_timestamp,
-			s.end_timestamp,
-			f.timestamp
-		FROM subtitles s
-		JOIN frames f ON s.episode = f.episode
-			AND f.timestamp BETWEEN s.start_timestamp AND s.end_timestamp
-			AND f.id = (SELECT id FROM closest_frame_id)
-		JOIN episodes e ON f.episode = e.key
-		WHERE s.episode = $1
-		ORDER BY s.start_timestamp ASC;
+            e.episode_number,
+            e.season,
+            e.title,
+            e.director,
+            s.id,
+            s.episode,
+            s.text,
+            s.start_timestamp,
+            s.end_timestamp,
+            f.timestamp
+        FROM subtitles s
+            JOIN frames f ON s.episode = f.episode
+                AND f.timestamp BETWEEN s.start_timestamp AND s.end_timestamp
+            JOIN episodes e ON f.episode = e.key
+        WHERE s.episode = $1
+            AND f.id = (
+                SELECT MIN(f2.id)
+                FROM frames f2
+                WHERE f2.episode = s.episode
+                AND f2.timestamp BETWEEN s.start_timestamp AND s.end_timestamp
+                ORDER BY ABS(f2.timestamp - ((s.start_timestamp + s.end_timestamp) / 2))
+            );
     `
 
 	rows, err := s.DB.Query(query, episode)
