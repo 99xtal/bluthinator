@@ -12,29 +12,28 @@ func (s *Server) SearchFrames(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("q")
 
 	// Build the search request body
-	searchBody := map[string]interface{}{
+	searchRequest := map[string]interface{}{
 		"_source": []string{"episode", "subtitle", "timestamp"},
-		"query": map[string]interface{}{
+		"size":    30,
+	}
+
+	if query != "" {
+		searchRequest["query"] = map[string]interface{}{
 			"match": map[string]interface{}{
 				"subtitle": map[string]interface{}{
 					"query": "*" + query + "*",
 				},
 			},
-		},
-	}
-
-	if (query == "") {
-		searchBody = map[string]interface{}{
-			"_source": []string{"episode", "subtitle", "timestamp"},
-			"query": map[string]interface{}{
-				"match_all": map[string]interface{}{},
-			},
+		}
+	} else {
+		searchRequest["query"] = map[string]interface{}{
+			"match_all": map[string]interface{}{},
 		}
 	}
 
 	// Encode the search body to JSON
 	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(searchBody); err != nil {
+	if err := json.NewEncoder(&buf).Encode(searchRequest); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
