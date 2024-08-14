@@ -2,7 +2,7 @@ import FrameLink from "~/app/ui/FrameLink";
 import { Frame } from "~/types";
 
 async function getNearbyFrames(key: string, timestamp: string): Promise<Frame[]> {
-    const response = await fetch(`${process.env.API_HOST}/nearby?e=${key}&t=${timestamp}`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_HOST}/nearby?e=${key}&t=${timestamp}`);
     return response.json() as Promise<Frame[]>;
 }
 

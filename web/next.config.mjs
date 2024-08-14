@@ -7,6 +7,18 @@ const nextConfig = {
                 hostname: 'localhost',
                 port: '9000',
                 pathname: '/bluthinator/**'
+            },
+            {
+                protocol: 'http',
+                hostname: 'homelab',
+                port: '9000',
+                pathname: '/bluthinator/**'
+            },
+            {
+                protocol: 'http',
+                hostname: 'homelab',
+                port: '8000',
+                pathname: '/caption/**'
             }
         ]
     }

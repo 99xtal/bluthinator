@@ -20,7 +20,7 @@ type EpisodeData = {
 }
 
 async function getEpisode(key: string) {
-    const response = await fetch(`${process.env.API_HOST}/episode/${key}`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_HOST}/episode/${key}`);
     return response.json() as Promise<EpisodeData>;
 }
 

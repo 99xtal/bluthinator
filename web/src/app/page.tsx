@@ -1,7 +1,7 @@
 import FrameLink from "./ui/FrameLink";
 
 async function search(query: string): Promise<any> {
-  const response = await fetch(`${process.env.API_HOST}/search?q=${query}`);
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_HOST}/search?q=${query}`);
   return response.json();
 }
 

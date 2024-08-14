@@ -10,7 +10,7 @@ import Link from "next/link";
 export default function FrameDetails({ frame, episode, subtitle }: { frame: Frame, episode: Episode, subtitle?: Subtitle }) {
     const [isMemeMode, setMemeMode] = useState(false)
     const [caption, setCaption] = useState(subtitle?.text || '')
-
+    
     const handleCancel = () => {
         setMemeMode(false)
         setCaption(subtitle?.text || '')
@@ -68,9 +68,9 @@ export default function FrameDetails({ frame, episode, subtitle }: { frame: Fram
                     </button>}
                     {isMemeMode && (
                         <>
-                            <button className={`${defonteRegular.className} flex-1 bg-theme-red text-white p-2 rounded-md`}>
+                            <Link href={`/meme/${frame.episode}/${frame.timestamp}/${btoa(caption)}`} className={`${defonteRegular.className} flex-1 bg-theme-red text-white p-2 rounded-md flex justify-center items-center`}>
                                 Generate Meme
-                            </button>
+                            </Link>
                             <button className={`${defonteRegular.className} flex-1 bg-theme-red text-white p-2 rounded-md`} onClick={handleCancel}>
                                 Cancel
                             </button>
