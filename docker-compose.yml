@@ -118,7 +118,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - API_HOST=http://api:8000
+      - NEX_PUBLIC_API_HOST=http://api:8000
       - NEXT_PUBLIC_IMG_HOST=http://homelab:9000/bluthinator
     depends_on:
       api:
