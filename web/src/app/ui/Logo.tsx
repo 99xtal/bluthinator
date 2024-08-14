@@ -1,4 +1,4 @@
-import { defonteRegular } from "../fonts";
+import { defonteRegular } from "../../fonts";
 
 export default function Logo() {
     return (

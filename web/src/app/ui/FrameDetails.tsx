@@ -1,10 +1,10 @@
 "use client"
 
 import Image from "next/image"
-import { getFrameUrl, msToTime } from "../utils"
+import { getFrameUrl, msToTime } from "../../utils"
 import { Episode, Frame, Subtitle } from "~/types";
 import { useState } from "react";
-import { defonteRegular } from "../fonts";
+import { defonteRegular } from "../../fonts";
 import Link from "next/link";
 
 export default function FrameDetails({ frame, episode, subtitle }: { frame: Frame, episode: Episode, subtitle?: Subtitle }) {
