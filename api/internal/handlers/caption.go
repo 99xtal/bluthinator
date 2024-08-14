@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"html"
 	"image"
 	"image/png"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/fogleman/gg"
@@ -22,10 +22,21 @@ func (s *Server) GetCaptionedFrame(w http.ResponseWriter, r *http.Request) {
 
 	base64Caption := r.URL.Query().Get("b")
 
-	htmlDecodedCaption := html.UnescapeString(base64Caption)
+	// URL decode the base64-encoded caption
+	urlDecodedCaption, err := url.QueryUnescape(base64Caption)
+	if err != nil {
+		http.Error(w, "Error decoding the URL-encoded caption", http.StatusBadRequest)
+		return
+	}
+
+	// Ensure the base64 string is properly padded
+	paddedCaption := urlDecodedCaption
+	if len(paddedCaption)%4 != 0 {
+		paddedCaption += strings.Repeat("=", 4-len(paddedCaption)%4)
+	}
 
 	// Decode the base64-encoded caption
-	captionBytes, err := base64.StdEncoding.DecodeString(htmlDecodedCaption)
+	captionBytes, err := base64.StdEncoding.DecodeString(paddedCaption)
 	if err != nil {
 		http.Error(w, "Error decoding the caption", http.StatusBadRequest)
 		return
