@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"html"
 	"image"
 	"image/png"
 	"net/http"
@@ -21,8 +22,10 @@ func (s *Server) GetCaptionedFrame(w http.ResponseWriter, r *http.Request) {
 
 	base64Caption := r.URL.Query().Get("b")
 
+	htmlDecodedCaption := html.UnescapeString(base64Caption)
+
 	// Decode the base64-encoded caption
-	captionBytes, err := base64.StdEncoding.DecodeString(base64Caption)
+	captionBytes, err := base64.StdEncoding.DecodeString(htmlDecodedCaption)
 	if err != nil {
 		http.Error(w, "Error decoding the caption", http.StatusBadRequest)
 		return
