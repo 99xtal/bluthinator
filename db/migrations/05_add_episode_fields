@@ -1,0 +1,4 @@
+ALTER TABLE episodes
+ADD COLUMN air_date TEXT,
+ADD COLUMN overview TEXT,
+ADD COLUMN writer TEXT;
