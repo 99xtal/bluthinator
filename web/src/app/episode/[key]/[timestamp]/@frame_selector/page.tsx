@@ -1,4 +1,4 @@
-import FrameLink from "~/app/ui/FrameLink";
+import FrameLink from "~/app/components/FrameLink";
 import { Frame } from "~/types";
 
 async function getNearbyFrames(key: string, timestamp: string): Promise<Frame[]> {

@@ -1,7 +1,7 @@
 import { defonteRegular } from "~/fonts";
 
-import FrameLink from "~/app/ui/FrameLink";
-import ScrollToAnchor from "~/app/ui/ScrollToAnchor";
+import FrameLink from "~/app/components/FrameLink";
+import ScrollToAnchor from "~/app/components/ScrollToAnchor";
 import { msToTime } from "~/utils";
 
 type EpisodeData = {

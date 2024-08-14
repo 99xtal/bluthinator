@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
-import Logo from "./ui/Logo";
-import Search from "./ui/Search";
+import Logo from "./components/Logo";
+import Search from "./components/Search";
 import { Suspense } from "react";
 
 const inter = Inter({ subsets: ["latin"] });

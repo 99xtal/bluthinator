@@ -1,4 +1,4 @@
-import FrameDetails from "~/app/ui/FrameDetails";
+import FrameDetails from "~/app/components/FrameDetails";
 
 async function getFrame(key: string, timestamp: string) {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_HOST}/episode/${key}/${timestamp}`);

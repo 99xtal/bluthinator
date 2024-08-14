@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { defonteRegular } from "~/fonts";
-import GoBackLink from "~/app/ui/GoBackLink";
+import GoBackLink from "~/app/components/GoBackLink";
 import { getFrameUrl } from "~/utils";
 
 export default async function Page({ params }: { params: { key: string, timestamp: string, caption: string } }) {

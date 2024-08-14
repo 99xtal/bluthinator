@@ -1,4 +1,4 @@
-import FrameLink from "./ui/FrameLink";
+import FrameLink from "./components/FrameLink";
 
 async function search(query: string): Promise<any> {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_HOST}/search?q=${query}`);
