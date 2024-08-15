@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from "next/link";
-import { getFrameUrl } from '../../utils';
+import { getFrameUrl } from '~/utils';
 
 interface Props {
     episode: string;

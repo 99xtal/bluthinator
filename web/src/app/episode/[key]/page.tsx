@@ -3,6 +3,7 @@ import { defonteRegular } from "~/fonts";
 import FrameLink from "~/app/components/FrameLink";
 import ScrollToAnchor from "~/app/components/ScrollToAnchor";
 import { msToTime } from "~/utils";
+import { SubtitleText, TitleText } from "~/app/elements/";
 
 type EpisodeData = {
     episode_number: number;
@@ -30,8 +31,8 @@ export default async function Page({ params }: { params: { key: string } }) {
     return (
         <div>
             <ScrollToAnchor />
-            <h1 className={`${defonteRegular.className} text-2xl`}>Episode {data.season}x{data.episode_number} - {`"${data.title}"`}</h1>
-            <h3 className={`${defonteRegular.className} text-xl text-theme-red`}>Director: {data.director}</h3>
+            <TitleText>{`Episode ${data.season}x${data.episode_number} - "${data.title}"`}</TitleText>
+            <SubtitleText>{`Director: ${data.director}`}</SubtitleText>
             <div>
                 {data.subtitles.map((subtitle, i) => (
                     <div key={subtitle.id} id={subtitle.frame_timestamp.toString()} className="p-4">
