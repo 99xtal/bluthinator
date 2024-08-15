@@ -53,7 +53,7 @@ export default function RootLayout({
             </Suspense>
           </div>
         </header>
-        <main className="container mx-auto p-4 lg:pd-8">
+        <main className="container mx-auto p-4 lg:p-8">
           <Providers>
             {children}
           </Providers>
