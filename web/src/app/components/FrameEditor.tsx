@@ -29,7 +29,7 @@ export default function FrameEditor({ frame, episode, subtitle }: { frame: Frame
 					className="w-full h-auto outline outline-4 outline-theme-black"
 				/>
 				{isMemeMode && (
-					<div className="absolute bottom-8 left-0 w-full text-center p-2 ">
+					<div className="absolute bottom-4 left-0 w-full text-center px-2 ">
                         <Caption>{caption}</Caption>
 					</div>
 				)}

@@ -61,7 +61,7 @@ func (s *Server) GetCaptionedFrame(w http.ResponseWriter, r *http.Request) {
 	imgHeight := float64(dc.Height())
 
 	fontColor := [3]float64{0.97254, 0.89803, 0.67843}
-	fontSize := float64(32)
+	fontSize := float64(48)
 	if err := dc.LoadFontFace("static/fonts/DeFonteReducedNormal.ttf", fontSize); err != nil {
 		panic(err)
 	}
@@ -84,11 +84,11 @@ func (s *Server) GetCaptionedFrame(w http.ResponseWriter, r *http.Request) {
 		return lines
 	}
 
-	lines := splitTextIntoLines(caption, imgWidth-20) // 20 pixels padding
+	lines := splitTextIntoLines(caption, imgWidth-8) // pixels padding
 
 	// Draw each line of text
 	lineHeight := fontSize * 1.2
-	startY := imgHeight - float64(len(lines))*lineHeight - 48 // 10 pixels padding from the bottom
+	startY := imgHeight - float64(len(lines))*lineHeight - 8 // pixels padding from the bottom
 
 	for i, line := range lines {
 		y := startY + float64(i)*lineHeight
