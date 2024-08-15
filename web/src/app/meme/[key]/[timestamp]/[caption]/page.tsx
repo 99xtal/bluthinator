@@ -14,7 +14,7 @@ export default async function Page({ params }: { params: { key: string, timestam
           </GoBackLink>
         </div>
         <div className="flex justify-center items-center">
-          <Image src={url} alt={params.caption} width={640} height={360} className="outline outline-8 outline-theme-black" />
+          <Image src={url} alt={params.caption} width={640} height={360} className="outline outline-4 outline-theme-black" />
         </div>
       </div>
     );

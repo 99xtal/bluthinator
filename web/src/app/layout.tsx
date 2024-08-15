@@ -38,10 +38,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} bg-theme-white`}>
-        <header className="sticky top-0 z-14 flex flex-row justify-center items-center pl-8 py-4 gap-64 bg-theme-white" >
-          <Link href="/">
-            <Logo />
-          </Link>
+        <header className="sticky top-0 flex flex-row justify-center items-center bg-white border-b border-black border-b-4" >
+          <div className="hidden md:block px-16">
+            <Link href="/">
+                <Logo />
+            </Link>
+          </div>
           <div className="px-8 py-4 bg-theme-orange flex flex-grow">
             <Suspense>
               <Search 
@@ -51,7 +53,7 @@ export default function RootLayout({
             </Suspense>
           </div>
         </header>
-        <main className="container mx-auto py-4">
+        <main className="container mx-auto p-4 lg:pd-8">
           <Providers>
             {children}
           </Providers>
