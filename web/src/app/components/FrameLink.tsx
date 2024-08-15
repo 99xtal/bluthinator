@@ -15,7 +15,7 @@ export default function FrameLink({ episode, timestamp, className }: Props) {
                 src={getFrameUrl(episode, timestamp)} 
                 alt={`${episode}: ${timestamp}`} 
                 width={400} 
-                height={240} 
+                height={240}
                 className={"box-border hover:outline hover:outline-8 hover:outline-theme-black" + (className ? ` ${className}` : '')}
             />
         </Link>

@@ -5,6 +5,7 @@ import "./globals.css";
 import Logo from "./components/Logo";
 import Search from "./components/Search";
 import { Suspense } from "react";
+import Providers from "./providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -51,7 +52,9 @@ export default function RootLayout({
           </div>
         </header>
         <main className="container mx-auto py-4">
-          {children}
+          <Providers>
+            {children}
+          </Providers>
         </main>
       </body>
     </html>

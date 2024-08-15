@@ -4,26 +4,7 @@ import FrameLink from "~/app/components/FrameLink";
 import ScrollToAnchor from "~/app/components/ScrollToAnchor";
 import { msToTime } from "~/utils";
 import { SubtitleText, TitleText } from "~/app/elements/";
-
-type EpisodeData = {
-    episode_number: number;
-    season: number;
-    title: string;
-    director: string;
-    subtitles: {
-        id: number;
-        episode: string;
-        text: string;
-        start_timestamp: number;
-        end_timestamp: number;
-        frame_timestamp: number;
-    }[]
-}
-
-async function getEpisode(key: string) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_HOST}/episode/${key}`);
-    return response.json() as Promise<EpisodeData>;
-}
+import { getEpisode } from "~/api";
 
 export default async function Page({ params }: { params: { key: string } }) {
     const data = await getEpisode(params.key);

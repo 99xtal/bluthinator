@@ -1,8 +1,7 @@
 import Image from "next/image";
-import Link from "next/link";
+
 import { defonteRegular } from "~/fonts";
 import GoBackLink from "~/app/components/GoBackLink";
-import { getFrameUrl } from "~/utils";
 
 export default async function Page({ params }: { params: { key: string, timestamp: string, caption: string } }) {
     const url = `${process.env.NEXT_PUBLIC_API_HOST}/caption/${params.key}/${params.timestamp}?b=${params.caption}`;

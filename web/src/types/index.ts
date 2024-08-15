@@ -12,6 +12,21 @@ export interface Episode {
     director: string;
 }
 
+export type EpisodeData = {
+    episode_number: number;
+    season: number;
+    title: string;
+    director: string;
+    subtitles: {
+        id: number;
+        episode: string;
+        text: string;
+        start_timestamp: number;
+        end_timestamp: number;
+        frame_timestamp: number;
+    }[]
+}
+
 export interface Subtitle {
     id: number;
     episode: string;
