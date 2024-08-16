@@ -5,19 +5,18 @@ Bluthinator is an Arrested Development search engine. Search by quotes and gener
 ## Project Overview
 
 ### Core
-`/core` contains the main video processing code which generates search index data and media assets to allow frames to be searchable by their associated quote.
+`/core` contains the main video processing code which generates search index data and media assets to allow frames to be searchable by their associated quote. [Read More](./core)
 
 `/airflow` contains an early version of the code for generating frame metadata and images from episodes. It's intended use is to be run manually on Airflow instances running in Docker Compose locally.
 
 ### Web Application
-This project uses Minio to serve as the object storage for serving media assets. The configuration for Minio is defined in `docker-compose`
+`/api` is a RESTful API server which gives access to the following resources defined in `docker-compose.yml`/ [Read More](./api)
 
-`/api` is a RESTful API server which gives access to the following resources defined in `docker-compose.yml`:
 - A Postgres database which stores episode metadata
 - An ElasticSearch server storing an index of subtitled frames
 - An object storage server (Minio) for serving static media assets
 
-`/web` is a Next.js application which serves as the web frontend for Bluthinator
+`/web` is a Next.js application which serves as the web frontend for Bluthinator. [Read More](./web)
 
 ## Development Setup
 *Requirements*: Docker, Docker Compose
