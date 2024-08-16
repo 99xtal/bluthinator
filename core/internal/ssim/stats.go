@@ -1,4 +1,4 @@
-package stats
+package ssim
 
 type number interface {
 	float64 | int64

@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/99xtal/bluthinator/core/internal/imgcomp"
+	"github.com/99xtal/bluthinator/core/internal/ssim"
 )
 
 func main() {
@@ -32,6 +32,6 @@ func main() {
 		log.Fatal(err)
 	}
 	
-	ssim_index := imgcomp.SSIM(img1, img2)
+	ssim_index := ssim.MeanSSIM(img1, img2)
 	fmt.Printf("SSIM index: %f\n", ssim_index)
 }
