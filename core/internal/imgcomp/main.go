@@ -1,4 +1,4 @@
-package ssim
+package imgcomp
 
 import (
 	"image"
@@ -15,7 +15,7 @@ var (
 	C3 = C2 / 2.0
   )
 
-func GetSSIMIndex(img1, img2 image.Image) float64 {
+func SSIM(img1, img2 image.Image) float64 {
 	windowSize := 11
 	var localSSIMs []float64
 
