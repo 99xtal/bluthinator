@@ -13,6 +13,7 @@ import (
 	"github.com/99xtal/bluthinator/core/internal/ffmpeg"
 	"github.com/99xtal/bluthinator/core/internal/ssim"
 	"github.com/nfnt/resize"
+	"github.com/schollz/progressbar/v3"
 )
 
 var (
@@ -39,16 +40,30 @@ func main() {
 
 func extractFrames(videoPath string) error {
 	base := filepath.Base(videoPath)
-	key := strings.TrimSuffix(base, filepath.Ext(base))
+	episodeKey := strings.TrimSuffix(filepath.Base(videoPath), filepath.Ext(base))
+	outputDir := fmt.Sprintf("frames/%s", episodeKey)
 
-	outputDir := fmt.Sprintf("frames/%s", key)
-	if err := os.MkdirAll(outputDir, 0755); err != nil {
+	probe, err := ffmpeg.ProbeVideo(videoPath)
+	if err != nil {
 		return err
 	}
 
-	var significantFrame *image.RGBA
+	frameRate, err := probe.FrameRate()
+	if err != nil {
+		return err
+	}
+
+	totalFrames, err := probe.TotalFrames()
+	if err != nil {
+		return err
+	}
+
+	bar := newProgressBar(totalFrames, episodeKey)
 	
-	err := ffmpeg.ReadFrames(videoPath, func(img *image.RGBA, frameNumber int) error {
+	var significantFrame *image.RGBA
+	err = ffmpeg.ReadFrames(videoPath, func(img *image.RGBA, frameNumber int) error {
+		bar.Set(frameNumber)
+
 		if frameNumber == 1 {
 			significantFrame = img
 			return nil
@@ -64,7 +79,8 @@ func extractFrames(videoPath string) error {
 			}
 			for sizeName, imgWidth := range size {
 				resizedImg := resize.Resize(imgWidth, 0, img, resize.Lanczos3)
-				filePath := fmt.Sprintf("%s/%d/%s.jpg", outputDir, frameNumberToMs(frameNumber, 24), sizeName)
+				timestamp := frameNumberToMs(frameNumber, frameRate)
+				filePath := fmt.Sprintf("%s/%d/%s.jpg", outputDir, timestamp, sizeName)
 
 				err := saveAsJPEG(resizedImg, filePath)
 				if err != nil {
@@ -100,3 +116,11 @@ func saveAsJPEG(img image.Image, fileName string) error {
 
 	return jpeg.Encode(file, img, nil)
 }
+
+func newProgressBar(totalFrames int, episode string) *progressbar.ProgressBar {
+	return progressbar.NewOptions(totalFrames, 
+		progressbar.OptionSetRenderBlankState(true),
+		progressbar.OptionSetDescription(fmt.Sprintf("Extracting frames from %s:", episode)),
+		progressbar.OptionSetElapsedTime(true),
+		progressbar.OptionShowCount(),
+	)}
