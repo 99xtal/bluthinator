@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
+	"sync"
 
 	"github.com/99xtal/bluthinator/core/internal/ffmpeg"
 	"github.com/99xtal/bluthinator/core/internal/ssim"
@@ -22,20 +22,43 @@ var (
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("Usage: framediff <video_file>")
+		fmt.Println("Usage: framediff <video_dir>")
 		os.Exit(1)
 	}
-	videoFilePath := os.Args[1]
+	inputDirPath := os.Args[1]
 
-	start := time.Now()
-
-	err := extractFrames(videoFilePath)
+	videoFiles, err := filepath.Glob(filepath.Join(inputDirPath, "*.mkv"))
 	if err != nil {
 		log.Fatal(err)
 	}
+	if len(videoFiles) == 0 {
+		fmt.Println("No video files found in the input directory")
+		os.Exit(1)
+	}
 
-	elapsed := time.Since(start)
-	fmt.Printf("Time taken: %s\n", elapsed)
+	videoChan := make(chan string, len(videoFiles))
+	var wg sync.WaitGroup
+
+	numWorkers := 3
+	for i := 0; i < numWorkers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for videoPath := range videoChan {
+				err := extractFrames(videoPath)
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
+		}()
+	}
+
+	for _, videoPath := range videoFiles {
+		videoChan <- videoPath
+	}
+	close(videoChan)
+
+	wg.Wait()
 }
 
 func extractFrames(videoPath string) error {
