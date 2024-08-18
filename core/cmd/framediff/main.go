@@ -12,6 +12,7 @@ import (
 
 	"github.com/99xtal/bluthinator/core/internal/ffmpeg"
 	"github.com/99xtal/bluthinator/core/internal/ssim"
+	"github.com/nfnt/resize"
 )
 
 var (
@@ -57,9 +58,18 @@ func extractFrames(videoPath string) error {
 		if (mean_ssim < similarityThreshold) {
 			significantFrame = img
 
-			err := saveAsJPEG(significantFrame, fmt.Sprintf("%s/%d.jpg", outputDir, frameNumberToMs(frameNumber, 24)))
-			if err != nil {
-				return err
+			size := map[string]uint{
+				"small": 240,
+				"medium": 480,
+			}
+			for sizeName, imgWidth := range size {
+				resizedImg := resize.Resize(imgWidth, 0, img, resize.Lanczos3)
+				filePath := fmt.Sprintf("%s/%d/%s.jpg", outputDir, frameNumberToMs(frameNumber, 24), sizeName)
+
+				err := saveAsJPEG(resizedImg, filePath)
+				if err != nil {
+					return err
+				}
 			}
 		}
 		
@@ -76,7 +86,13 @@ func frameNumberToMs(frameNumber int, fps int) int {
 	return frameNumber * 1000 / fps
 }
 
-func saveAsJPEG(img *image.RGBA, fileName string) error {
+func saveAsJPEG(img image.Image, fileName string) error {
+	// Ensure the directory exists
+	dir := filepath.Dir(fileName)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+
 	file, err := os.Create(fileName)
 	if err != nil {
 		return err
