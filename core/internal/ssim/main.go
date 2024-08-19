@@ -8,12 +8,12 @@ import (
 )
 
 var (
-	L  = 1.0
-	K1 = 0.01
-	K2 = 0.03
-	C1 = math.Pow((K1 * L), 2.0)
-	C2 = math.Pow((K2 * L), 2.0)
-	C3 = C2 / 2.0
+	L          = 1.0
+	K1         = 0.01
+	K2         = 0.03
+	C1         = math.Pow((K1 * L), 2.0)
+	C2         = math.Pow((K2 * L), 2.0)
+	C3         = C2 / 2.0
 	windowSize = 11
 )
 
@@ -66,15 +66,14 @@ func SSIM(img1, img2 image.Image) float64 {
 
 	mean1 := Mean(luminances1)
 	mean2 := Mean(luminances2)
-	variance1 := Variance(luminances1)
-	variance2 := Variance(luminances2)
-	covariance := Covariance(luminances1, luminances2)
+	variance1 := Variance(luminances1, mean1)
+	variance2 := Variance(luminances2, mean2)
+	covariance := Covariance(luminances1, luminances2, mean1, mean2)
 
-	luminanceComparison := (2*mean1*mean2 + C1) / (mean1*mean1 + mean2*mean2 + C1)
-	contrastComparison := (2*math.Sqrt(variance1)*math.Sqrt(variance2) + C2) / (variance1 + variance2 + C2)
-	structureComparison := (covariance + C3) / (math.Sqrt(variance1)*math.Sqrt(variance2) + C3)
+	numerator := (2*mean1*mean2 + C1) * (2*covariance + C2)
+	denominator := (mean1*mean1 + mean2*mean2 + C1) * (variance1 + variance2 + C2)
 
-	return luminanceComparison * contrastComparison * structureComparison
+	return numerator / denominator
 }
 
 func luminance(c color.Color) float64 {
