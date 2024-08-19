@@ -1,5 +1,5 @@
 export const getFrameUrl = (episode: string, timestamp: number, size: 'small' | 'medium' | 'large' = 'small') => {
-    return `${process.env.NEXT_PUBLIC_IMG_HOST}/frames/${episode}/${timestamp}/${size}.jpg`;
+    return `/img/${episode}/${timestamp}/${size}.jpg`;
 }
 
 export const msToTime = (ms: number) => {

@@ -21,7 +21,15 @@ const nextConfig = {
                 pathname: '/caption/**'
             }
         ]
-    }
+    },
+    async rewrites() {
+        return [
+          {
+            source: '/img/:episode/:timestamp/:size.jpg',
+            destination: `${process.env.IMG_HOST}/frames/:episode/:timestamp/:size.jpg`,
+          },
+        ];
+      },
 };
 
 export default nextConfig;
