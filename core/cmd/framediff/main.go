@@ -9,11 +9,13 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/99xtal/bluthinator/core/internal/ffmpeg"
 	"github.com/99xtal/bluthinator/core/internal/ssim"
 	"github.com/nfnt/resize"
-	"github.com/schollz/progressbar/v3"
+	"github.com/vbauerster/mpb/v7"
+	"github.com/vbauerster/mpb/v7/decor"
 )
 
 var (
@@ -38,14 +40,16 @@ func main() {
 
 	videoChan := make(chan string, len(videoFiles))
 	var wg sync.WaitGroup
-
 	numWorkers := 3
+
+	p := mpb.New(mpb.WithWaitGroup(&wg))
+
 	for i := 0; i < numWorkers; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			for videoPath := range videoChan {
-				err := extractFrames(videoPath)
+				err := extractFrames(videoPath, p)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -61,7 +65,7 @@ func main() {
 	wg.Wait()
 }
 
-func extractFrames(videoPath string) error {
+func extractFrames(videoPath string, p *mpb.Progress) error {
 	base := filepath.Base(videoPath)
 	episodeKey := strings.TrimSuffix(filepath.Base(videoPath), filepath.Ext(base))
 	outputDir := fmt.Sprintf("frames/%s", episodeKey)
@@ -81,11 +85,12 @@ func extractFrames(videoPath string) error {
 		return err
 	}
 
-	bar := newProgressBar(totalFrames, episodeKey)
-	
+	bar := newProgressBar(p, totalFrames, episodeKey)
+
 	var significantFrame *image.RGBA
 	err = ffmpeg.ReadFrames(videoPath, func(img *image.RGBA, frameNumber int) error {
-		bar.Set(frameNumber)
+		bar.SetCurrent(int64(frameNumber))
+		start := time.Now()
 
 		if frameNumber == 1 {
 			significantFrame = img
@@ -93,12 +98,13 @@ func extractFrames(videoPath string) error {
 		}
 
 		mean_ssim := ssim.MeanSSIM(significantFrame, img)
-		if (mean_ssim < similarityThreshold) {
+		if mean_ssim < similarityThreshold {
 			significantFrame = img
 
 			size := map[string]uint{
-				"small": 240,
+				"small":  240,
 				"medium": 480,
+				"large":  720,
 			}
 			for sizeName, imgWidth := range size {
 				resizedImg := resize.Resize(imgWidth, 0, img, resize.Lanczos3)
@@ -111,7 +117,9 @@ func extractFrames(videoPath string) error {
 				}
 			}
 		}
-		
+
+		bar.DecoratorEwmaUpdate(time.Since(start))
+
 		return nil
 	})
 	if err != nil {
@@ -140,10 +148,21 @@ func saveAsJPEG(img image.Image, fileName string) error {
 	return jpeg.Encode(file, img, nil)
 }
 
-func newProgressBar(totalFrames int, episode string) *progressbar.ProgressBar {
-	return progressbar.NewOptions(totalFrames, 
-		progressbar.OptionSetRenderBlankState(true),
-		progressbar.OptionSetDescription(fmt.Sprintf("Extracting frames from %s:", episode)),
-		progressbar.OptionSetElapsedTime(true),
-		progressbar.OptionShowCount(),
-	)}
+func newProgressBar(p *mpb.Progress, totalFrames int, episodeKey string) *mpb.Bar {
+	return p.New(int64(totalFrames),
+		mpb.BarStyle().Lbound("|").Filler("=").Tip(">").Padding("-").Rbound("|"),
+		mpb.PrependDecorators(
+			decor.Name(fmt.Sprintf("Processing %s: ", episodeKey)),
+			decor.CountersNoUnit("%d/%d"),
+			decor.Name(" ("),
+			decor.Percentage(),
+			decor.Name(")"),
+		),
+		mpb.AppendDecorators(
+			decor.Elapsed(decor.ET_STYLE_GO),
+			decor.Name(" (ETA: "),
+			decor.EwmaETA(decor.ET_STYLE_GO, 60),
+			decor.Name(")"),
+		),
+	)
+}
