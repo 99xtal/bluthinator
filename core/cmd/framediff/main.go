@@ -101,20 +101,10 @@ func extractFrames(videoPath string, p *mpb.Progress) error {
 		if mean_ssim < similarityThreshold {
 			significantFrame = img
 
-			size := map[string]uint{
-				"small":  240,
-				"medium": 480,
-				"large":  720,
-			}
-			for sizeName, imgWidth := range size {
-				resizedImg := resize.Resize(imgWidth, 0, img, resize.Lanczos3)
-				timestamp := frameNumberToMs(frameNumber, frameRate)
-				filePath := fmt.Sprintf("%s/%d/%s.jpg", outputDir, timestamp, sizeName)
-
-				err := saveAsJPEG(resizedImg, filePath)
-				if err != nil {
-					return err
-				}
+			frameDir := fmt.Sprintf("%s/%d", outputDir, frameNumberToMs(frameNumber, frameRate))
+			err := writeImages(significantFrame, frameDir)
+			if err != nil {
+				return err
 			}
 		}
 
@@ -123,6 +113,41 @@ func extractFrames(videoPath string, p *mpb.Progress) error {
 		return nil
 	})
 	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func writeImages(img image.Image, outputDir string) error {
+	imgSizes := map[string]uint{
+		"small":  240,
+		"medium": 480,
+		"large":  720,
+	}
+
+	var wg sync.WaitGroup
+	errChan := make(chan error, len(imgSizes))
+
+	for sizeName, imgWidth := range imgSizes {
+		wg.Add(1)
+		go func(sizeName string, imgWidth uint) {
+			defer wg.Done()
+
+			resizedImg := resize.Resize(imgWidth, 0, img, resize.Lanczos3)
+			filePath := fmt.Sprintf("%s/%s.jpg", outputDir, sizeName)
+
+			err := saveAsJPEG(resizedImg, filePath)
+			if err != nil {
+				errChan <- err
+			}
+		}(sizeName, imgWidth)
+	}
+
+	wg.Wait()
+	close(errChan)
+
+	for err := range errChan {
 		return err
 	}
 
