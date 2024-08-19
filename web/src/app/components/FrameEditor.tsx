@@ -22,7 +22,7 @@ export default function FrameEditor({ frame, episode, subtitle }: { frame: Frame
 		<div className="flex lg:flex-row flex-col gap-8">
 			<div className="relative flex flex-1">
 				<Image
-					src={getFrameUrl(frame.episode, frame.timestamp, 'medium')}
+					src={getFrameUrl(frame.episode, frame.timestamp, 'large')}
 					alt={subtitle?.text || frame.episode + ' ' + frame.timestamp}
 					width={640}
 					height={360}

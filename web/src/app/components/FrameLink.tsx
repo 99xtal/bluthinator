@@ -5,14 +5,15 @@ import { getFrameUrl } from '~/utils';
 interface Props {
     episode: string;
     timestamp: number;
+    size?: 'small' | 'medium' | 'large';
     className?: string;
 }
 
-export default function FrameLink({ episode, timestamp, className }: Props) {
+export default function FrameLink({ episode, timestamp, size = 'small', className }: Props) {
     return (
         <Link href={`/episode/${episode}/${timestamp}`}>
             <Image 
-                src={getFrameUrl(episode, timestamp)} 
+                src={getFrameUrl(episode, timestamp, size)} 
                 alt={`${episode}: ${timestamp}`} 
                 width={400} 
                 height={240}
