@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"image"
-	"image/png"
+	"image/jpeg"
 	"net/http"
 	"net/url"
 	"strings"
@@ -43,7 +43,7 @@ func (s *Server) GetCaptionedFrame(w http.ResponseWriter, r *http.Request) {
 	}
 	caption := string(captionBytes)
 
-	data, err := s.ObjectStorage.GetObject(fmt.Sprintf("bluthinator/frames/%s/%s/medium.png", key, timestamp))
+	data, err := s.ObjectStorage.GetObject(fmt.Sprintf("bluthinator/frames/%s/%s/medium.jpg", key, timestamp))
 	if err != nil {
 		http.Error(w, "Error fetching the image", http.StatusInternalServerError)
 		return
@@ -108,8 +108,8 @@ func (s *Server) GetCaptionedFrame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Write the response
-	w.Header().Set("Content-Type", "image/png")
-	err = png.Encode(w, dc.Image())
+	w.Header().Set("Content-Type", "image/jpeg")
+	err = jpeg.Encode(w, dc.Image(), nil)
 	if err != nil {
 		http.Error(w, "Error encoding the image", http.StatusInternalServerError)
 		return
