@@ -160,6 +160,7 @@ func newProgressBar(p *mpb.Progress, totalFrames int, episodeKey string) *mpb.Ba
 		),
 		mpb.AppendDecorators(
 			decor.Elapsed(decor.ET_STYLE_GO),
+			decor.EwmaSpeed(0, " %.2f ops/s", 60),
 			decor.Name(" (ETA: "),
 			decor.EwmaETA(decor.ET_STYLE_GO, 60),
 			decor.Name(")"),
