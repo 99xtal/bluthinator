@@ -28,6 +28,10 @@ const nextConfig = {
             source: '/img/:episode/:timestamp/:size.jpg',
             destination: `${process.env.IMG_HOST}/frames/:episode/:timestamp/:size.jpg`,
           },
+          {
+            source: '/meme/:episode/:timestamp/:caption',
+            destination: `${process.env.NEXT_PUBLIC_API_HOST}/caption/:episode/:timestamp?b=:caption`,
+          }
         ];
       },
 };
