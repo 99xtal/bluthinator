@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"fmt"
@@ -14,6 +14,7 @@ import (
 	"github.com/99xtal/bluthinator/core/internal/ffmpeg"
 	"github.com/99xtal/bluthinator/core/internal/ssim"
 	"github.com/nfnt/resize"
+	"github.com/spf13/cobra"
 	"github.com/vbauerster/mpb/v7"
 	"github.com/vbauerster/mpb/v7/decor"
 )
@@ -22,47 +23,63 @@ var (
 	similarityThreshold = 0.70
 )
 
-func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("Usage: framediff <video_dir>")
-		os.Exit(1)
-	}
-	inputDirPath := os.Args[1]
+// extractCmd represents the extract command
+var extractCmd = &cobra.Command{
+	Use:   "extract [video_dir]",
+	Short: "Extract perceptually distinct frames from a video",
+	Long: ``,
+	Run: func(cmd *cobra.Command, args []string) {
+        inputDirPath := args[0]
 
-	videoFiles, err := filepath.Glob(filepath.Join(inputDirPath, "*.mkv"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	if len(videoFiles) == 0 {
-		fmt.Println("No video files found in the input directory")
-		os.Exit(1)
-	}
-
-	videoChan := make(chan string, len(videoFiles))
-	var wg sync.WaitGroup
-	numWorkers := 3
-
-	p := mpb.New(mpb.WithWaitGroup(&wg))
-
-	for i := 0; i < numWorkers; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for videoPath := range videoChan {
-				err := extractFrames(videoPath, p)
-				if err != nil {
-					log.Fatal(err)
+		videoFiles, err := filepath.Glob(filepath.Join(inputDirPath, "*.mkv"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		if len(videoFiles) == 0 {
+			fmt.Println("No video files found in the input directory")
+			os.Exit(1)
+		}
+	
+		videoChan := make(chan string, len(videoFiles))
+		var wg sync.WaitGroup
+		numWorkers := 3
+	
+		p := mpb.New(mpb.WithWaitGroup(&wg))
+	
+		for i := 0; i < numWorkers; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				for videoPath := range videoChan {
+					err := extractFrames(videoPath, p)
+					if err != nil {
+						log.Fatal(err)
+					}
 				}
-			}
-		}()
-	}
+			}()
+		}
+	
+		for _, videoPath := range videoFiles {
+			videoChan <- videoPath
+		}
+		close(videoChan)
+	
+		wg.Wait()
+	},
+}
 
-	for _, videoPath := range videoFiles {
-		videoChan <- videoPath
-	}
-	close(videoChan)
+func init() {
+	rootCmd.AddCommand(extractCmd)
 
-	wg.Wait()
+	// Here you will define your flags and configuration settings.
+
+	// Cobra supports Persistent Flags which will work for this command
+	// and all subcommands, e.g.:
+	// extractCmd.PersistentFlags().String("foo", "", "A help for foo")
+
+	// Cobra supports local flags which will only run when this command
+	// is called directly, e.g.:
+	// extractCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 func extractFrames(videoPath string, p *mpb.Progress) error {
