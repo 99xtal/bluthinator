@@ -16,7 +16,6 @@ import (
 	"github.com/nfnt/resize"
 	"github.com/spf13/cobra"
 	"github.com/vbauerster/mpb/v7"
-	"github.com/vbauerster/mpb/v7/decor"
 )
 
 var (
@@ -95,7 +94,7 @@ func extractFrames(videoPath string, p *mpb.Progress) error {
 		return err
 	}
 
-	bar := newProgressBar(p, totalFrames, episodeKey)
+	bar := newProgressBar(p, int64(totalFrames), fmt.Sprintf("Processing %s: ", episodeKey))
 
 	var significantFrame *image.RGBA
 	err = ffmpeg.ReadFrames(videoPath, func(img *image.RGBA, frameNumber int) error {
@@ -181,24 +180,4 @@ func saveAsJPEG(img image.Image, fileName string) error {
 	}
 
 	return jpeg.Encode(file, img, nil)
-}
-
-func newProgressBar(p *mpb.Progress, totalFrames int, episodeKey string) *mpb.Bar {
-	return p.New(int64(totalFrames),
-		mpb.BarStyle().Lbound("|").Filler("=").Tip(">").Padding("-").Rbound("|"),
-		mpb.PrependDecorators(
-			decor.Name(fmt.Sprintf("Processing %s: ", episodeKey)),
-			decor.CountersNoUnit("%d/%d"),
-			decor.Name(" ("),
-			decor.Percentage(),
-			decor.Name(")"),
-		),
-		mpb.AppendDecorators(
-			decor.Elapsed(decor.ET_STYLE_GO),
-			decor.EwmaSpeed(0, " %.2f ops/s", 60),
-			decor.Name(" (ETA: "),
-			decor.EwmaETA(decor.ET_STYLE_GO, 60),
-			decor.Name(")"),
-		),
-	)
 }
