@@ -52,9 +52,7 @@ var extractCmd = &cobra.Command{
 			go func() {
 				defer wg.Done()
 				for videoPath := range videoChan {
-					frameOuptutDir := fmt.Sprintf("%s/%s/frames", outputDir, filename(videoPath))
-
-					err := extractFrames(videoPath, p, frameOuptutDir)
+					err := extractFrames(videoPath, p)
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -79,8 +77,9 @@ func init() {
 	extractCmd.Flags().StringVarP(&outputDir, "output", "o", "./output", "Output directory for extracted frames and metadata")
 }
 
-func extractFrames(videoPath string, p *mpb.Progress, outputDir string) error {
+func extractFrames(videoPath string, p *mpb.Progress) error {
 	fileName := filename(videoPath)
+	frameDir := fmt.Sprintf("%s/%s/frames/", outputDir, fileName)
 
 	probe, err := ffmpeg.ProbeVideo(videoPath)
 	if err != nil {
@@ -137,8 +136,8 @@ func extractFrames(videoPath string, p *mpb.Progress, outputDir string) error {
 			}
 
 			// write images
-			frameDir := fmt.Sprintf("%s/%d", outputDir, timestamp)
-			err := writeImages(lastSignificantFrame, frameDir)
+			imageDir := fmt.Sprintf("%s/%d", frameDir, timestamp)
+			err := writeImages(lastSignificantFrame, imageDir)
 			if err != nil {
 				return err
 			}
