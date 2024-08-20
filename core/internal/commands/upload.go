@@ -93,6 +93,16 @@ func init() {
 func uploadEpisodeFrames(episodeFramesPath string, p *mpb.Progress, db *sql.DB, minioClient *minio.Client) error {
 	episode := filepath.Base(episodeFramesPath)
 
+	updatedCount, err := syncFilesWithStorage(episodeFramesPath, p, minioClient)
+	if err != nil {
+		return err
+	}
+	if updatedCount == 0 {
+		fmt.Printf("[%s] Files already synced in object storage\n", episode)
+		return nil
+	}
+
+	// Delete existing frames from DB
 	result, err := db.Exec("DELETE FROM frames WHERE episode=$1", episode)
 	if err != nil {
 		log.Fatal(err)
@@ -107,102 +117,46 @@ func uploadEpisodeFrames(episodeFramesPath string, p *mpb.Progress, db *sql.DB, 
 		fmt.Printf("[%s] Deleted %d rows from frames table\n", episode, rowsAffected)
 	}
 
-	// List existing objects in MinIO
-	prefix := fmt.Sprintf("frames/%s", episode)
-	objectCh := minioClient.ListObjects(context.Background(), "bluthinator", minio.ListObjectsOptions{
-		Prefix:    prefix,
-		Recursive: true,
-	})
-
-	var objects []minio.ObjectInfo
-	for object := range objectCh {
-		if object.Err != nil {
-			return object.Err
-		}
-		objects = append(objects, object)
-	}
-
-	if len(objects) > 0 {
-		bar := newProgressBar(p, int64(len(objects)), fmt.Sprintf("[%s] Deleting files from %s ", episode, prefix))
-
-		for _, object := range objects {
-			start := time.Now()
-
-			err := minioClient.RemoveObject(context.Background(), "bluthinator", object.Key, minio.RemoveObjectOptions{})
-			if err != nil {
-				log.Fatalln(err)
-			}
-
-			bar.Increment()
-			bar.DecoratorEwmaUpdate(time.Since(start))
-		}
-
-		bar.SetTotal(bar.Current(), true)
-		bar.Wait()
-	}
-
-	// Collect all files to be uploaded
-	var files []string
+	// Create index of frames
+	var frames []Frame;
 	err = filepath.Walk(episodeFramesPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if !info.IsDir() {
-			files = append(files, path)
+
+		if path == episodeFramesPath {
+			return nil
 		}
+
+		if info.IsDir() {
+			relativePath, err := filepath.Rel(episodeFramesPath, path)
+			if err != nil {
+				return err
+			}
+
+			pathParts := strings.Split(relativePath, string(os.PathSeparator))
+			if len(pathParts) == 1 {
+				timestamp, err := strconv.ParseInt(pathParts[0], 10, 64)
+				if err != nil {
+					return err
+				}
+
+				frame := Frame{
+					Episode: episode,
+					Timestamp: int(timestamp),
+				}
+				frames = append(frames, frame)
+			}
+		}
+
 		return nil
 	})
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-
-	// Upload files to MinIO
-	bar := newProgressBar(p, int64(len(files)), fmt.Sprintf("[%s] Uploading files to %s ", episode, prefix))
-
-	var frames []Frame;
-	for _, filePath := range files {
-		start := time.Now()
-
-		relativePath, err := filepath.Rel(episodeFramesPath, filePath)
-        if err != nil {
-            log.Fatalf("Failed to compute relative path: %v", err)
-        }
-
-        // Split the relative path to extract episode and timestamp
-        pathParts := strings.Split(filePath, string(os.PathSeparator))
-        if len(pathParts) < 2 {
-            log.Fatalf("Invalid file path structure: %s", filePath)
-        }
-        episode := pathParts[1]
-        timestamp, err := strconv.ParseInt(pathParts[2], 10, 64)
-		if err != nil {
-			return err
-		}
-
-        objectName := fmt.Sprintf("frames/%s/%s", episode, relativePath)
-
-		// Upload file
-		_, err = minioClient.FPutObject(context.Background(), "bluthinator", objectName, filePath, minio.PutObjectOptions{})
-		if err != nil {
-			return err
-		}
-
-		frame := Frame{
-			Episode: episode,
-			Timestamp: int(timestamp),
-		}
-
-		frames = append(frames, frame)
-
-		bar.Increment()
-		bar.DecoratorEwmaUpdate(time.Since(start))
-	}
-
-	bar.SetTotal(bar.Current(), true)
-	bar.Wait()
 
 	// Upload frame index to DB using batch insert
-	bar = newProgressBar(p, int64(len(frames)), fmt.Sprintf("[%s] Uploading frame index to DB ", episode))
+	bar := newProgressBar(p, int64(len(frames)), fmt.Sprintf("[%s] Uploading frame index to DB ", episode))
 
 	const batchSize = 1000
 	for i := 0; i < len(frames); i += batchSize {
@@ -236,4 +190,101 @@ func uploadEpisodeFrames(episodeFramesPath string, p *mpb.Progress, db *sql.DB, 
 	bar.Wait()
 
 	return nil
+}
+
+func syncFilesWithStorage(episodeFramesPath string, p *mpb.Progress, minioClient *minio.Client) (int, error) {
+	episodeKey := filepath.Base(episodeFramesPath)
+	bucketName := "bluthinator"
+	prefix := fmt.Sprintf("frames/%s", episodeKey)
+	ctx := context.Background()
+
+	var files []string
+	err := filepath.Walk(episodeFramesPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			files = append(files, path)
+		}
+		return nil
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	addedCount := 0
+	removedCount := 0
+
+	// List objects in Minio
+	objectCh := minioClient.ListObjects(ctx, bucketName, minio.ListObjectsOptions{
+		Prefix:    prefix,
+		Recursive: true,
+	})
+
+	minioObjects := make(map[string]struct{})
+	for object := range objectCh {
+		if object.Err != nil {
+			return 0, object.Err
+		}
+		minioObjects[object.Key] = struct{}{}
+	}
+
+	// Pre-process to determine files to add and delete
+	localFiles := make(map[string]struct{})
+	for _, filePath := range files {
+		relativePath, err := filepath.Rel(episodeFramesPath, filePath)
+		if err != nil {
+			return 0, err
+		}
+
+		objectKey := fmt.Sprintf("frames/%s/%s", episodeKey, relativePath)
+		localFiles[objectKey] = struct{}{}
+
+		if _, exists := minioObjects[objectKey]; !exists {
+			addedCount++
+		}
+	}
+	updateTotal := addedCount + removedCount
+
+	if updateTotal == 0 {
+		return 0, nil
+	}
+
+	bar := newProgressBar(p, int64(addedCount+removedCount), fmt.Sprintf("[%s] Syncing local files with files in object storage ", episodeKey))
+
+	for _, filePath := range files {
+		start := time.Now()
+
+		relativePath, err := filepath.Rel(episodeFramesPath, filePath)
+        if err != nil {
+            return 0, err
+        }
+
+		objectKey := fmt.Sprintf("frames/%s/%s", episodeKey, relativePath)
+		if _, exists := minioObjects[objectKey]; !exists {
+			addedCount++
+			_, err := minioClient.FPutObject(ctx, bucketName, objectKey, filePath, minio.PutObjectOptions{})
+			if err != nil {
+				return 0, err
+			}
+			bar.Increment()
+			bar.DecoratorEwmaUpdate(time.Since(start))
+		}
+	}
+
+	// Delete objects from Minio that aren't present locally
+	for objectName := range minioObjects {
+		if _, exists := localFiles[objectName]; !exists {
+			err := minioClient.RemoveObject(ctx, bucketName, objectName, minio.RemoveObjectOptions{})
+			if err != nil {
+				return 0, err
+			}
+			bar.Increment()
+		}
+	}
+
+	bar.Wait()
+	fmt.Printf("[%s] Synced %d files (%d added, %d removed)\n", episodeKey, len(files), addedCount, removedCount)
+
+	return updateTotal, nil
 }
