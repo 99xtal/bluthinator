@@ -27,9 +27,9 @@ var (
 var extractCmd = &cobra.Command{
 	Use:   "extract [video_dir]",
 	Short: "Extract perceptually distinct frames from a video",
-	Long: ``,
+	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-        inputDirPath := args[0]
+		inputDirPath := args[0]
 
 		videoFiles, err := filepath.Glob(filepath.Join(inputDirPath, "*.mkv"))
 		if err != nil {
@@ -39,12 +39,12 @@ var extractCmd = &cobra.Command{
 			fmt.Println("No video files found in the input directory")
 			os.Exit(1)
 		}
-	
+
 		videoChan := make(chan string, len(videoFiles))
 		var wg sync.WaitGroup
-	
+
 		p := mpb.New(mpb.WithWaitGroup(&wg))
-	
+
 		for i := uint(0); i < numWorkers; i++ {
 			wg.Add(1)
 			go func() {
@@ -57,12 +57,12 @@ var extractCmd = &cobra.Command{
 				}
 			}()
 		}
-	
+
 		for _, videoPath := range videoFiles {
 			videoChan <- videoPath
 		}
 		close(videoChan)
-	
+
 		wg.Wait()
 	},
 }
@@ -124,6 +124,9 @@ func extractFrames(videoPath string, p *mpb.Progress) error {
 	if err != nil {
 		return err
 	}
+
+	bar.SetTotal(bar.Current(), true)
+	bar.Wait()
 
 	return nil
 }
