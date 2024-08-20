@@ -80,6 +80,7 @@ var uploadCmd = &cobra.Command{
 		}
 		close(episodeChan)
 
+		p.Wait()
 		wg.Wait()
 	},
 }
@@ -102,92 +103,10 @@ func uploadEpisodeFrames(episodeFramesPath string, p *mpb.Progress, db *sql.DB, 
 		return nil
 	}
 
-	// Delete existing frames from DB
-	result, err := db.Exec("DELETE FROM frames WHERE episode=$1", episode)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if rowsAffected > 0 {
-		fmt.Printf("[%s] Deleted %d rows from frames table\n", episode, rowsAffected)
-	}
-
-	// Create index of frames
-	var frames []Frame;
-	err = filepath.Walk(episodeFramesPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if path == episodeFramesPath {
-			return nil
-		}
-
-		if info.IsDir() {
-			relativePath, err := filepath.Rel(episodeFramesPath, path)
-			if err != nil {
-				return err
-			}
-
-			pathParts := strings.Split(relativePath, string(os.PathSeparator))
-			if len(pathParts) == 1 {
-				timestamp, err := strconv.ParseInt(pathParts[0], 10, 64)
-				if err != nil {
-					return err
-				}
-
-				frame := Frame{
-					Episode: episode,
-					Timestamp: int(timestamp),
-				}
-				frames = append(frames, frame)
-			}
-		}
-
-		return nil
-	})
+	err = rebuildDBIndex(episodeFramesPath, p, db)
 	if err != nil {
 		return err
 	}
-
-	// Upload frame index to DB using batch insert
-	bar := newProgressBar(p, int64(len(frames)), fmt.Sprintf("[%s] Uploading frame index to DB ", episode))
-
-	const batchSize = 1000
-	for i := 0; i < len(frames); i += batchSize {
-		start := time.Now()
-
-		end := i + batchSize
-		if end > len(frames) {
-			end = len(frames)
-		}
-
-		batch := frames[i:end]
-		values := make([]interface{}, 0, len(batch)*2)
-		placeholders := make([]string, 0, len(batch))
-
-		for j, frame := range batch {
-			placeholders = append(placeholders, fmt.Sprintf("($%d, $%d)", j*2+1, j*2+2))
-			values = append(values, frame.Episode, frame.Timestamp)
-		}
-
-		query := fmt.Sprintf("INSERT INTO frames (episode, timestamp) VALUES %s", strings.Join(placeholders, ","))
-		_, err := db.Exec(query, values...)
-		if err != nil {
-			return err
-		}
-
-		bar.SetCurrent(int64(end))
-		bar.DecoratorEwmaUpdate(time.Since(start))
-	}
-
-	bar.SetTotal(bar.Current(), true)
-	bar.Wait()
 
 	return nil
 }
@@ -287,4 +206,97 @@ func syncFilesWithStorage(episodeFramesPath string, p *mpb.Progress, minioClient
 	fmt.Printf("[%s] Synced %d files (%d added, %d removed)\n", episodeKey, len(files), addedCount, removedCount)
 
 	return updateTotal, nil
+}
+
+func rebuildDBIndex(episodeFramesPath string, p *mpb.Progress, db *sql.DB) error {
+	episodeKey := filepath.Base(episodeFramesPath)
+
+	// Delete existing frames from DB
+	result, err := db.Exec("DELETE FROM frames WHERE episode=$1", episodeKey)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected > 0 {
+		fmt.Printf("[%s] Deleted %d rows from frames table\n", episodeKey, rowsAffected)
+	}
+
+	// Create index of frames
+	var frames []Frame;
+	err = filepath.Walk(episodeFramesPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if path == episodeFramesPath {
+			return nil
+		}
+
+		if info.IsDir() {
+			relativePath, err := filepath.Rel(episodeFramesPath, path)
+			if err != nil {
+				return err
+			}
+
+			pathParts := strings.Split(relativePath, string(os.PathSeparator))
+			if len(pathParts) == 1 {
+				timestamp, err := strconv.ParseInt(pathParts[0], 10, 64)
+				if err != nil {
+					return err
+				}
+
+				frame := Frame{
+					Episode: episodeKey,
+					Timestamp: int(timestamp),
+				}
+				frames = append(frames, frame)
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	// Upload frame index to DB using batch insert
+	bar := newProgressBar(p, int64(len(frames)), fmt.Sprintf("[%s] Uploading frame index to DB ", episodeKey))
+
+	const batchSize = 1000
+	for i := 0; i < len(frames); i += batchSize {
+		start := time.Now()
+
+		end := i + batchSize
+		if end > len(frames) {
+			end = len(frames)
+		}
+
+		batch := frames[i:end]
+		values := make([]interface{}, 0, len(batch)*2)
+		placeholders := make([]string, 0, len(batch))
+
+		for j, frame := range batch {
+			placeholders = append(placeholders, fmt.Sprintf("($%d, $%d)", j*2+1, j*2+2))
+			values = append(values, frame.Episode, frame.Timestamp)
+		}
+
+		query := fmt.Sprintf("INSERT INTO frames (episode, timestamp) VALUES %s", strings.Join(placeholders, ","))
+		_, err := db.Exec(query, values...)
+		if err != nil {
+			return err
+		}
+
+		bar.SetCurrent(int64(end))
+		bar.DecoratorEwmaUpdate(time.Since(start))
+	}
+
+	bar.SetTotal(bar.Current(), true)
+	bar.Wait()
+
+	return nil
 }

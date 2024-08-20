@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"encoding/csv"
 	"fmt"
 	"image"
 	"image/jpeg"
@@ -21,12 +22,13 @@ import (
 var (
 	similarityThreshold float64
 	numWorkers          uint
+	outputDir		    string
 )
 
 // extractCmd represents the extract command
 var extractCmd = &cobra.Command{
 	Use:   "extract [video_dir]",
-	Short: "Extract perceptually distinct frames from a video",
+	Short: "Extract perceptually distinct frames and metadata from a video",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		inputDirPath := args[0]
@@ -50,7 +52,9 @@ var extractCmd = &cobra.Command{
 			go func() {
 				defer wg.Done()
 				for videoPath := range videoChan {
-					err := extractFrames(videoPath, p)
+					frameOuptutDir := fmt.Sprintf("%s/%s/frames", outputDir, filename(videoPath))
+
+					err := extractFrames(videoPath, p, frameOuptutDir)
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -72,12 +76,11 @@ func init() {
 
 	extractCmd.Flags().Float64VarP(&similarityThreshold, "threshold", "t", 0.70, "Threshold for frame similarity")
 	extractCmd.Flags().UintVarP(&numWorkers, "workers", "w", 3, "Number of workers to use")
+	extractCmd.Flags().StringVarP(&outputDir, "output", "o", "./output", "Output directory for extracted frames and metadata")
 }
 
-func extractFrames(videoPath string, p *mpb.Progress) error {
-	base := filepath.Base(videoPath)
-	episodeKey := strings.TrimSuffix(filepath.Base(videoPath), filepath.Ext(base))
-	outputDir := fmt.Sprintf("frames/%s", episodeKey)
+func extractFrames(videoPath string, p *mpb.Progress, outputDir string) error {
+	fileName := filename(videoPath)
 
 	probe, err := ffmpeg.ProbeVideo(videoPath)
 	if err != nil {
@@ -94,24 +97,48 @@ func extractFrames(videoPath string, p *mpb.Progress) error {
 		return err
 	}
 
-	bar := newProgressBar(p, int64(totalFrames), fmt.Sprintf("Processing %s: ", episodeKey))
+	// Open CSV file for writing
+	csvFile, err := os.Create(fmt.Sprintf("%s/index.csv", outputDir))
+	if err != nil {
+		return err
+	}
+	defer csvFile.Close()
 
-	var significantFrame *image.RGBA
+	// Create CSV writer
+	csvWriter := csv.NewWriter(csvFile)
+	defer csvWriter.Flush()
+
+	header := []string{"episode", "timestamp"}
+	if err := csvWriter.Write(header); err != nil {
+		return err
+	}
+
+	bar := newProgressBar(p, int64(totalFrames), fmt.Sprintf("Processing %s: ", fileName))
+
+	var lastSignificantFrame *image.RGBA
 	err = ffmpeg.ReadFrames(videoPath, func(img *image.RGBA, frameNumber int) error {
 		bar.SetCurrent(int64(frameNumber))
 		start := time.Now()
 
 		if frameNumber == 1 {
-			significantFrame = img
+			lastSignificantFrame = img
 			return nil
 		}
 
-		mean_ssim := ssim.MeanSSIM(significantFrame, img)
+		mean_ssim := ssim.MeanSSIM(lastSignificantFrame, img)
 		if mean_ssim < similarityThreshold {
-			significantFrame = img
+			lastSignificantFrame = img
+			timestamp := frameNumberToMs(frameNumber, frameRate)
 
-			frameDir := fmt.Sprintf("%s/%d", outputDir, frameNumberToMs(frameNumber, frameRate))
-			err := writeImages(significantFrame, frameDir)
+			// write to index file
+			record := []string{fileName, fmt.Sprintf("%d", timestamp)}
+			if err := csvWriter.Write(record); err != nil {
+				return err
+			}
+
+			// write images
+			frameDir := fmt.Sprintf("%s/%d", outputDir, timestamp)
+			err := writeImages(lastSignificantFrame, frameDir)
 			if err != nil {
 				return err
 			}
@@ -183,4 +210,8 @@ func saveAsJPEG(img image.Image, fileName string) error {
 	}
 
 	return jpeg.Encode(file, img, nil)
+}
+
+func filename(path string) string {
+	return strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
 }
