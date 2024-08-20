@@ -22,7 +22,7 @@ import (
 var (
 	similarityThreshold float64
 	numWorkers          uint
-	outputDir		    string
+	outputDir           string
 )
 
 // extractCmd represents the extract command
@@ -79,7 +79,10 @@ func init() {
 
 func extractFrames(videoPath string, p *mpb.Progress) error {
 	fileName := filename(videoPath)
-	frameDir := fmt.Sprintf("%s/%s/frames/", outputDir, fileName)
+	frameDir := fmt.Sprintf("%s/%s/frames", outputDir, fileName)
+	if err := os.MkdirAll(frameDir, 0755); err != nil {
+		return err
+	}
 
 	probe, err := ffmpeg.ProbeVideo(videoPath)
 	if err != nil {
@@ -97,7 +100,7 @@ func extractFrames(videoPath string, p *mpb.Progress) error {
 	}
 
 	// Open CSV file for writing
-	csvFile, err := os.Create(fmt.Sprintf("%s/index.csv", outputDir))
+	csvFile, err := os.Create(fmt.Sprintf("%s/index.csv", frameDir))
 	if err != nil {
 		return err
 	}
