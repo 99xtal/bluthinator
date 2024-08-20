@@ -20,7 +20,8 @@ import (
 )
 
 var (
-	similarityThreshold = 0.70
+	similarityThreshold float64
+	numWorkers          uint
 )
 
 // extractCmd represents the extract command
@@ -42,11 +43,10 @@ var extractCmd = &cobra.Command{
 	
 		videoChan := make(chan string, len(videoFiles))
 		var wg sync.WaitGroup
-		numWorkers := 3
 	
 		p := mpb.New(mpb.WithWaitGroup(&wg))
 	
-		for i := 0; i < numWorkers; i++ {
+		for i := uint(0); i < numWorkers; i++ {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
@@ -71,15 +71,8 @@ var extractCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(extractCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// extractCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// extractCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	extractCmd.Flags().Float64VarP(&similarityThreshold, "threshold", "t", 0.70, "Threshold for frame similarity")
+	extractCmd.Flags().UintVarP(&numWorkers, "workers", "w", 3, "Number of workers to use")
 }
 
 func extractFrames(videoPath string, p *mpb.Progress) error {
