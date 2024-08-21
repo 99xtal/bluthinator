@@ -22,16 +22,28 @@ export default function NearbySelector({ episode, currentTimestamp }: Props) {
 
     return (
         <div className="flex flex-row gap-4">
-            <button onClick={() => setNearbyTimestamp(data[0].timestamp)}>&lt;</button>
-            {data.map((frame) => (
-                <FrameLink 
-                    key={frame.id} 
-                    episode={frame.episode} 
-                    timestamp={frame.timestamp}
-                    className={frame.timestamp !== currentTimestamp ? "filter grayscale hover:grayscale-0" : ''}
-                />
-            ))}
-            <button onClick={() => setNearbyTimestamp(data[data.length - 1].timestamp)}>&gt;</button>
+            <button 
+                onClick={() => setNearbyTimestamp(data[0].timestamp)}
+                className="p-2 md:p-4 text-3xl"
+            >
+                &lt;
+            </button>
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-7">
+                {data.map((frame) => (
+                    <FrameLink 
+                        key={frame.id} 
+                        episode={frame.episode} 
+                        timestamp={frame.timestamp}
+                        className={frame.timestamp !== currentTimestamp ? "filter grayscale hover:grayscale-0" : ''}
+                    />
+                ))}
+            </div>
+            <button 
+                onClick={() => setNearbyTimestamp(data[data.length - 1].timestamp)}
+                className="p-2 md:p-4 text-3xl"
+            >
+                &gt;
+            </button>
         </div>
     )
 }

@@ -45,23 +45,21 @@ export default function FrameEditor({ frame, episode, subtitle }: { frame: Frame
                     </TextLink>
 				</div>
                 <Divider />
-				{subtitle && (
-					<div className="flex-grow justify-center items-center p-8">
-                        {isMemeMode ? (
-                            <textarea
-                                value={caption}
-                                onChange={(e) => setCaption(e.target.value)}
-                                className={`${defonteRegular.className} w-full p-2 text-lg text-theme-black bg-transparent border border-gray-300 outline-none resize-none`}
-                                rows={3}
-                            />
-                        ) : (
-                            <h3 className={`${defonteRegular.className} text-lg text-theme-black`}>
-                                {'"' + subtitle?.text + '"'}
-                            </h3>
-                        )
-                        }
-					</div>
-				)}
+                <div className="flex-grow justify-center items-center p-8">
+                    {isMemeMode ? (
+                        <textarea
+                            value={caption}
+                            onChange={(e) => setCaption(e.target.value)}
+                            className={`${defonteRegular.className} w-full p-2 text-lg text-theme-black bg-transparent border border-gray-300 outline-none resize-none`}
+                            rows={3}
+                        />
+                    ) : (
+                        subtitle && <h3 className={`${defonteRegular.className} text-lg text-theme-black`}>
+                            {'"' + subtitle?.text + '"'}
+                        </h3>
+                    )
+                    }
+                </div>
                 <Divider />
                 <div className="flex flex-row gap-2">
                     {!isMemeMode && 
@@ -79,11 +77,11 @@ export default function FrameEditor({ frame, episode, subtitle }: { frame: Frame
                             </Button>
                         </>
                     )}
-                    {!isMemeMode && 
+                    {/* {!isMemeMode && 
                         <Button>
                             Make GIF
                         </Button>
-                    }
+                    } */}
                 </div>
 			</div>
 		</div>

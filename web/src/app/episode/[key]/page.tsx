@@ -17,7 +17,7 @@ export default async function Page({ params }: { params: { key: string } }) {
             <div>
                 {data.subtitles.map((subtitle, i) => (
                     <div key={subtitle.id} id={subtitle.frame_timestamp.toString()} className="p-4">
-                        <div className="flex flex-row gap-2">
+                        <div className="flex flex-row gap-6">
                             <div className="flex flex-1 justify-center items-end">
                                 <FrameLink episode={subtitle.episode} timestamp={subtitle.frame_timestamp} size="medium" />
                             </div>
