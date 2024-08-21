@@ -154,9 +154,6 @@ func extractFrames(videoPath string, p *mpb.Progress) error {
 		return err
 	}
 
-	bar.SetTotal(int64(totalFrames), true)
-	bar.Wait()
-
 	return nil
 }
 
