@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"database/sql"
+	"encoding/csv"
 	"fmt"
 	"log"
 	"os"
@@ -91,10 +92,11 @@ func init() {
 	uploadCmd.Flags().UintVarP(&numWorkers, "workers", "w", 3, "Number of workers to use")
 }
 
-func uploadEpisodeFrames(episodeFramesPath string, p *mpb.Progress, db *sql.DB, minioClient *minio.Client) error {
-	episode := filepath.Base(episodeFramesPath)
+func uploadEpisodeFrames(episodeDir string, p *mpb.Progress, db *sql.DB, minioClient *minio.Client) error {
+	episode := filepath.Base(episodeDir)
+	frameDir := filepath.Join(episodeDir, "frames")
 
-	updatedCount, err := syncFilesWithStorage(episodeFramesPath, p, minioClient)
+	updatedCount, err := syncFilesWithStorage(episodeDir, p, minioClient)
 	if err != nil {
 		return err
 	}
@@ -103,7 +105,13 @@ func uploadEpisodeFrames(episodeFramesPath string, p *mpb.Progress, db *sql.DB, 
 		return nil
 	}
 
-	err = rebuildDBIndex(episodeFramesPath, p, db)
+	fmt.Printf("[%s] Reading frame index\n", episode)
+	frames, err := readFrameIndexCSV(frameDir)
+	if err != nil {
+		return err
+	}
+
+	err = rebuildDBIndex(episode, frames, p, db)
 	if err != nil {
 		return err
 	}
@@ -111,14 +119,18 @@ func uploadEpisodeFrames(episodeFramesPath string, p *mpb.Progress, db *sql.DB, 
 	return nil
 }
 
-func syncFilesWithStorage(episodeFramesPath string, p *mpb.Progress, minioClient *minio.Client) (int, error) {
-	episodeKey := filepath.Base(episodeFramesPath)
+func syncFilesWithStorage(episodeDir string, p *mpb.Progress, minioClient *minio.Client) (int, error) {
+	episodeKey := filepath.Base(episodeDir)
 	bucketName := "bluthinator"
-	prefix := fmt.Sprintf("frames/%s", episodeKey)
+	objPrefix := fmt.Sprintf("frames/%s", episodeKey)
 	ctx := context.Background()
 
+	frameDir := filepath.Join(episodeDir, "frames")
+
+	fmt.Printf("[%s] Comparing local and remote files\n", episodeKey)
+
 	var files []string
-	err := filepath.Walk(episodeFramesPath, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(frameDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -136,7 +148,7 @@ func syncFilesWithStorage(episodeFramesPath string, p *mpb.Progress, minioClient
 
 	// List objects in Minio
 	objectCh := minioClient.ListObjects(ctx, bucketName, minio.ListObjectsOptions{
-		Prefix:    prefix,
+		Prefix:    objPrefix,
 		Recursive: true,
 	})
 
@@ -151,7 +163,7 @@ func syncFilesWithStorage(episodeFramesPath string, p *mpb.Progress, minioClient
 	// Pre-process to determine files to add and delete
 	localFiles := make(map[string]struct{})
 	for _, filePath := range files {
-		relativePath, err := filepath.Rel(episodeFramesPath, filePath)
+		relativePath, err := filepath.Rel(frameDir, filePath)
 		if err != nil {
 			return 0, err
 		}
@@ -169,12 +181,12 @@ func syncFilesWithStorage(episodeFramesPath string, p *mpb.Progress, minioClient
 		return 0, nil
 	}
 
-	bar := newProgressBar(p, int64(addedCount+removedCount), fmt.Sprintf("[%s] Syncing local files with files in object storage ", episodeKey))
+	bar := newProgressBar(p, int64(updateTotal), fmt.Sprintf("[%s] Syncing local and remote files in object storage ", episodeKey))
 
 	for _, filePath := range files {
 		start := time.Now()
 
-		relativePath, err := filepath.Rel(episodeFramesPath, filePath)
+		relativePath, err := filepath.Rel(frameDir, filePath)
         if err != nil {
             return 0, err
         }
@@ -202,17 +214,17 @@ func syncFilesWithStorage(episodeFramesPath string, p *mpb.Progress, minioClient
 		}
 	}
 
+	bar.SetTotal(bar.Current(), true)
 	bar.Wait()
 	fmt.Printf("[%s] Synced %d files (%d added, %d removed)\n", episodeKey, len(files), addedCount, removedCount)
 
 	return updateTotal, nil
 }
 
-func rebuildDBIndex(episodeFramesPath string, p *mpb.Progress, db *sql.DB) error {
-	episodeKey := filepath.Base(episodeFramesPath)
-
+func rebuildDBIndex(episode string, frames []Frame, p *mpb.Progress, db *sql.DB) error {
+	fmt.Printf("[%s] Rebuilding frame index in DB\n", episode)
 	// Delete existing frames from DB
-	result, err := db.Exec("DELETE FROM frames WHERE episode=$1", episodeKey)
+	result, err := db.Exec("DELETE FROM frames WHERE episode=$1", episode)
 	if err != nil {
 		return err
 	}
@@ -223,49 +235,11 @@ func rebuildDBIndex(episodeFramesPath string, p *mpb.Progress, db *sql.DB) error
 	}
 
 	if rowsAffected > 0 {
-		fmt.Printf("[%s] Deleted %d rows from frames table\n", episodeKey, rowsAffected)
-	}
-
-	// Create index of frames
-	var frames []Frame;
-	err = filepath.Walk(episodeFramesPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if path == episodeFramesPath {
-			return nil
-		}
-
-		if info.IsDir() {
-			relativePath, err := filepath.Rel(episodeFramesPath, path)
-			if err != nil {
-				return err
-			}
-
-			pathParts := strings.Split(relativePath, string(os.PathSeparator))
-			if len(pathParts) == 1 {
-				timestamp, err := strconv.ParseInt(pathParts[0], 10, 64)
-				if err != nil {
-					return err
-				}
-
-				frame := Frame{
-					Episode: episodeKey,
-					Timestamp: int(timestamp),
-				}
-				frames = append(frames, frame)
-			}
-		}
-
-		return nil
-	})
-	if err != nil {
-		return err
+		fmt.Printf("[%s] Deleted %d rows from frames table\n", episode, rowsAffected)
 	}
 
 	// Upload frame index to DB using batch insert
-	bar := newProgressBar(p, int64(len(frames)), fmt.Sprintf("[%s] Uploading frame index to DB ", episodeKey))
+	bar := newProgressBar(p, int64(len(frames)), fmt.Sprintf("[%s] Uploading frame index to DB ", episode))
 
 	const batchSize = 1000
 	for i := 0; i < len(frames); i += batchSize {
@@ -299,4 +273,41 @@ func rebuildDBIndex(episodeFramesPath string, p *mpb.Progress, db *sql.DB) error
 	bar.Wait()
 
 	return nil
+}
+
+func readFrameIndexCSV(frameDir string) ([]Frame, error) {
+	csvFilePath := filepath.Join(frameDir, "index.csv")
+
+	file, err := os.Open(csvFilePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+
+	records, err := reader.ReadAll()
+	if err != nil {
+		return nil, err
+	}
+
+	frames := make([]Frame, 0, len(records))
+	for _, record := range records[1:] {
+		if len(record) != 2 {
+			continue
+		}
+
+		timestamp, err := strconv.Atoi(record[1])
+		if err != nil {
+			return nil, err
+		}
+
+		frame := Frame{
+			Episode: record[0],
+			Timestamp: timestamp,
+		}
+		frames = append(frames, frame)
+	}
+
+	return frames, nil
 }
