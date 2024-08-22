@@ -6,6 +6,7 @@ import Logo from "./components/Logo";
 import Search from "./components/Search";
 import { Suspense } from "react";
 import Providers from "./providers";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -38,6 +39,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} bg-theme-white`}>
+        <Script>
+          {`window.fbAsyncInit = function() {
+            FB.init({
+              appId            : '${process.env.NEXT_PUBLIC_FACEBOOK_APP_ID}',
+              xfbml            : true,
+              version          : 'v20.0'
+            });
+          };`}
+        </Script>
+        <Script async defer crossOrigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></Script>
         <header className="z-50 sticky top-0 flex flex-row justify-center items-center bg-white border-black border-b-4" >
           <div className="hidden md:block px-16">
             <Link href="/">
