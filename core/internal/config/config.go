@@ -11,6 +11,8 @@ type Config struct {
 	PostgresPass          string
 	PostgresDB            string
 	ObjectStorageEndpoint string
+	ObjectStorageUser     string
+	ObjectStoragePass     string
 }
 
 func (c *Config) GetPostgresConnString() string {
@@ -33,5 +35,7 @@ func New() *Config {
 		PostgresPass:          getEnv("POSTGRES_PASSWORD", "default_pass"),
 		PostgresDB:            getEnv("POSTGRES_DB", "default_db"),
 		ObjectStorageEndpoint: getEnv("OBJECT_STORAGE_ENDPOINT", "http://localhost:9000"),
+		ObjectStorageUser:     getEnv("OBJECT_STORAGE_USER", "minio"),
+		ObjectStoragePass:     getEnv("OBJECT_STORAGE_PASSWORD", "minio123"),
 	}
 }
