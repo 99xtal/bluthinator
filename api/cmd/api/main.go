@@ -41,12 +41,13 @@ func main() {
 	router := mux.NewRouter()
 
 	// Routes
+	router.HandleFunc("/caption/{key}/{timestamp}", server.GetCaptionedFrame).Methods("GET")
 	router.HandleFunc("/episode/{key}", server.GetEpisodeData).Methods("GET")
 	router.HandleFunc("/episode/{key}/{timestamp}", server.GetEpisodeFrame).Methods("GET")
-	router.HandleFunc("/nearby", server.GetNearbyFrames).Methods("GET")
-	router.HandleFunc("/search", server.SearchFrames).Methods("GET")
-	router.HandleFunc("/caption/{key}/{timestamp}", server.GetCaptionedFrame).Methods("GET")
 	router.HandleFunc("/healthcheck", server.HealthCheck).Methods("GET")
+	router.HandleFunc("/nearby", server.GetNearbyFrames).Methods("GET")
+	router.HandleFunc("/random", server.GetRandomFrame).Methods("GET")
+	router.HandleFunc("/search", server.SearchFrames).Methods("GET")
 
 	// Configure CORS
 	c := cors.New(cors.Options{
