@@ -38,7 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} bg-theme-white`}>
-        <header className="sticky top-0 flex flex-row justify-center items-center bg-white border-b border-black border-b-4" >
+        <header className="z-50 sticky top-0 flex flex-row justify-center items-center bg-white border-black border-b-4" >
           <div className="hidden md:block px-16">
             <Link href="/">
                 <Logo />

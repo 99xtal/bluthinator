@@ -5,6 +5,7 @@ import ScrollToAnchor from "~/app/components/ScrollToAnchor";
 import { msToTime } from "~/utils";
 import { SubtitleText, TitleText } from "~/app/elements/";
 import { getEpisode } from "~/api";
+import ScrollToTopButton from "~/app/components/ScrollToTopButton";
 
 export default async function Page({ params }: { params: { key: string } }) {
     const data = await getEpisode(params.key);
@@ -17,7 +18,7 @@ export default async function Page({ params }: { params: { key: string } }) {
             <div>
                 {data.subtitles.map((subtitle, i) => (
                     <div key={subtitle.id} id={subtitle.frame_timestamp.toString()} className="p-4">
-                        <div className="flex flex-row gap-6">
+                        <div className="flex flex-row gap-6 items-center">
                             <div className="flex flex-1 justify-center items-end">
                                 <FrameLink episode={subtitle.episode} timestamp={subtitle.frame_timestamp} size="medium" />
                             </div>
@@ -33,6 +34,7 @@ export default async function Page({ params }: { params: { key: string } }) {
                     </div>
                 ))}
             </div>
+            <ScrollToTopButton />
         </div>
     )
 }
