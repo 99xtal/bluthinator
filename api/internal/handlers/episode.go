@@ -38,7 +38,8 @@ func (s *Server) GetEpisodeData(w http.ResponseWriter, r *http.Request) {
                 AND f2.timestamp BETWEEN s.start_timestamp AND s.end_timestamp
                 ORDER BY ABS(f2.timestamp - ((s.start_timestamp + s.end_timestamp) / 2))
 				LIMIT 1
-            );
+            )
+		ORDER BY s.start_timestamp;
     `
 
 	rows, err := s.DB.Query(query, episode)
