@@ -50,7 +50,7 @@ func main() {
 
 	// Configure CORS
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedOrigins:   config.AllowedOrigins,
 		AllowCredentials: true,
 	})
 	handler := c.Handler(router)

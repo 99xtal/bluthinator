@@ -2,11 +2,13 @@ package config
 
 import (
 	"os"
+	"strings"
 
 	"github.com/elastic/go-elasticsearch/v7"
 )
 
 type Config struct {
+	AllowedOrigins        []string
 	PostgresHost          string
 	PostgresPort          string
 	PostgresUser          string
@@ -56,5 +58,6 @@ func New() *Config {
 		ElasticPass:           getEnv("ELASTIC_PASS", "default_pass"),
 		ObjectStorageEndpoint: getEnv("OBJECT_STORAGE_ENDPOINT", "http://localhost:9000"),
 		ServerPort:            getEnv("SERVER_PORT", "8000"),
+		AllowedOrigins:        strings.Split(getEnv("ALLOWED_ORIGINS", "http://localhost:3000"), ","),
 	}
 }

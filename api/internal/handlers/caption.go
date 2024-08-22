@@ -43,7 +43,7 @@ func (s *Server) GetCaptionedFrame(w http.ResponseWriter, r *http.Request) {
 	}
 	caption := string(captionBytes)
 
-	data, err := s.ObjectStorage.GetObject(fmt.Sprintf("bluthinator/frames/%s/%s/medium.jpg", key, timestamp))
+	data, err := s.ObjectStorage.GetObject(fmt.Sprintf("bluthinator/frames/%s/%s/large.jpg", key, timestamp))
 	if err != nil {
 		http.Error(w, "Error fetching the image", http.StatusInternalServerError)
 		return
