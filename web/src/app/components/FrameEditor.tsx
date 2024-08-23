@@ -63,18 +63,18 @@ export default function FrameEditor({ frame, episode, subtitle }: { frame: Frame
                 <Divider />
                 <div className="flex flex-row gap-2">
                     {!isMemeMode && 
-                        <Button onClick={() => setMemeMode(true)}>
+                        <Button onClick={() => setMemeMode(true)} className="flex-1">
                             Make Meme
                         </Button>
                     }
                     {isMemeMode && (
                         <>
-                            <Link href={`/meme/${frame.episode}/${frame.timestamp}/${btoa(caption)}`} className={`${ffBlurProMedium.className} flex-1 bg-theme-red text-white p-2 rounded-md flex justify-center items-center`}>
-                                Generate Meme
-                            </Link>
-                            <Button onClick={handleCancel}>
+                            <Button onClick={handleCancel} variant='secondary' className="flex-1">
                                 Cancel
                             </Button>
+                            <Link href={`/meme/${frame.episode}/${frame.timestamp}/${btoa(caption)}`} className={`${ffBlurProMedium.className} flex-1 bg-theme-red text-white p-2 rounded-md flex justify-center items-center`}>
+                                Generate
+                            </Link>
                         </>
                     )}
                     {/* {!isMemeMode && 
