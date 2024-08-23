@@ -39,7 +39,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} bg-theme-white`}>
-        <Script>
+        <Script id="facebook-sdk-init">
           {`window.fbAsyncInit = function() {
             FB.init({
               appId            : '${process.env.NEXT_PUBLIC_FACEBOOK_APP_ID}',
