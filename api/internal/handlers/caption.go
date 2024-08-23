@@ -29,19 +29,11 @@ func (s *Server) GetCaptionedFrame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Ensure the base64 string is properly padded
-	paddedCaption := urlDecodedCaption
-	if len(paddedCaption)%4 != 0 {
-		paddedCaption += strings.Repeat("=", 4-len(paddedCaption)%4)
-	}
-
-	// Decode the base64-encoded caption
-	captionBytes, err := base64.StdEncoding.DecodeString(paddedCaption)
+	caption, err := decodeBase64String(urlDecodedCaption)
 	if err != nil {
-		http.Error(w, "Error decoding the caption", http.StatusBadRequest)
+		http.Error(w, "Error decoding the base64-encoded caption", http.StatusBadRequest)
 		return
 	}
-	caption := string(captionBytes)
 
 	data, err := s.ObjectStorage.GetObject(fmt.Sprintf("bluthinator/frames/%s/%s/large.jpg", key, timestamp))
 	if err != nil {
@@ -55,43 +47,63 @@ func (s *Server) GetCaptionedFrame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	captionedImage, err := drawCaption(img, caption)
+	if err != nil {
+		http.Error(w, "Error drawing the caption", http.StatusInternalServerError)
+		return
+	}
+
+	// Write the response
+	w.Header().Set("Content-Type", "image/jpeg")
+	err = jpeg.Encode(w, captionedImage, nil)
+	if err != nil {
+		http.Error(w, "Error encoding the image", http.StatusInternalServerError)
+		return
+	}
+}
+
+func decodeBase64String(base64String string) (string, error) {
+	// Ensure the base64 string is properly padded
+	if len(base64String)%4 != 0 {
+		base64String += strings.Repeat("=", 4-len(base64String)%4)
+	}
+
+	captionBytes, err := base64.StdEncoding.DecodeString(base64String)
+	if err != nil {
+		return "", err
+	}
+	return string(captionBytes), nil
+}
+
+func drawCaption(img image.Image, caption string) (image.Image, error) {
 	// Prepare drawing context
 	dc := gg.NewContextForImage(img)
 	imgWidth := float64(dc.Width())
 	imgHeight := float64(dc.Height())
+	imgPadding := 8.0
 
+	// Draw each line of text
 	fontColor := [3]float64{0.97254, 0.89803, 0.67843}
 	fontSize := float64(48)
 	if err := dc.LoadFontFace("static/fonts/FFBlurProMedium/font.ttf", fontSize); err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	splitTextIntoLines := func(text string, maxWidth float64) []string {
-		words := strings.Fields(text)
-		var lines []string
-		var currentLine string
-		for _, word := range words {
-			testLine := currentLine + " " + word
-			testWidth, _ := dc.MeasureString(testLine)
-			if testWidth > maxWidth {
-				lines = append(lines, strings.TrimSpace(currentLine))
-				currentLine = word
-			} else {
-				currentLine = testLine
-			}
+	lines := splitTextIntoLines(dc, caption, imgWidth - imgPadding)
+	if len(lines) > 1 {
+		fontSize = float64(32)
+		if err := dc.LoadFontFace("static/fonts/FFBlurProMedium/font.ttf", fontSize); err != nil {
+			return nil, err
 		}
-		lines = append(lines, strings.TrimSpace(currentLine))
-		return lines
+		lines = splitTextIntoLines(dc, caption, imgWidth - imgPadding)
 	}
 
-	lines := splitTextIntoLines(caption, imgWidth-8) // pixels padding
-
-	// Draw each line of text
-	lineHeight := fontSize * 1.2
+	lineHeight := fontSize * 1.0
 	startY := imgHeight - float64(len(lines))*lineHeight - 8 // pixels padding from the bottom
 
 	for i, line := range lines {
 		y := startY + float64(i)*lineHeight
+		fmt.Printf("Drawing line %d at y=%f\n", i, y)
 
 		// Draw the shadow with reduced opacity
 		shadowColor := [3]float64{0, 0, 0} // Black color for the shadow
@@ -107,11 +119,24 @@ func (s *Server) GetCaptionedFrame(w http.ResponseWriter, r *http.Request) {
 		dc.DrawStringAnchored(line, imgWidth/2, y, 0.5, 0.5)
 	}
 
-	// Write the response
-	w.Header().Set("Content-Type", "image/jpeg")
-	err = jpeg.Encode(w, dc.Image(), nil)
-	if err != nil {
-		http.Error(w, "Error encoding the image", http.StatusInternalServerError)
-		return
+	return dc.Image(), nil
+}
+
+// set font size before calling this
+func splitTextIntoLines(dc *gg.Context, text string, maxWidth float64) []string {
+	words := strings.Fields(text)
+	var lines []string
+	var currentLine string
+	for _, word := range words {
+		testLine := currentLine + " " + word
+		testWidth, _ := dc.MeasureString(testLine)
+		if testWidth > maxWidth {
+			lines = append(lines, strings.TrimSpace(currentLine))
+			currentLine = word
+		} else {
+			currentLine = testLine
+		}
 	}
+	lines = append(lines, strings.TrimSpace(currentLine))
+	return lines
 }
