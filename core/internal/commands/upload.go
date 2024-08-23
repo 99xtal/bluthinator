@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/elastic/go-elasticsearch/v7"
 	_ "github.com/lib/pq"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -37,6 +38,11 @@ var uploadCmd = &cobra.Command{
 		}
 		defer db.Close()
 
+		esClient, err := elasticsearch.NewClient(config.GetElasticSearchConfig())
+		if err != nil {
+			log.Fatalf("Error creating the client: %s", err)
+		}
+
 		minioClient, err := minio.New(config.ObjectStorageEndpoint, &minio.Options{
 			Creds: credentials.NewStaticV4(config.ObjectStorageUser, config.ObjectStoragePass, ""),
 		})
@@ -58,7 +64,7 @@ var uploadCmd = &cobra.Command{
 
 		p := mpb.New(mpb.WithWaitGroup(&wg))
 
-		uploader := NewFrameUploader(db, minioClient, p)
+		uploader := NewFrameUploader(db, minioClient, p, esClient)
 
 		for i := uint(0); i < numWorkers; i++ {
 			wg.Add(1)

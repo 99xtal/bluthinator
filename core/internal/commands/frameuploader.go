@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/go-elasticsearch/v7/esutil"
 	"github.com/minio/minio-go/v7"
 	"github.com/vbauerster/mpb/v7"
 )
@@ -19,13 +21,15 @@ type FrameUploader struct {
 	db          *sql.DB
 	minioClient *minio.Client
 	p           *mpb.Progress
+	esClient    *elasticsearch.Client
 }
 
-func NewFrameUploader(db *sql.DB, minioClient *minio.Client, p *mpb.Progress) *FrameUploader {
+func NewFrameUploader(db *sql.DB, minioClient *minio.Client, p *mpb.Progress, esClient *elasticsearch.Client) *FrameUploader {
 	return &FrameUploader{
 		db:          db,
 		minioClient: minioClient,
 		p:           p,
+		esClient:    esClient,
 	}
 }
 
@@ -49,6 +53,11 @@ func (fu *FrameUploader) UploadEpisode(episodeDir string) error {
 	}
 
 	err = fu.rebuildDBIndex(episode, frames)
+	if err != nil {
+		return err
+	}
+
+	err = fu.reindexSearchRecords(episode)
 	if err != nil {
 		return err
 	}
@@ -242,6 +251,119 @@ func (fu *FrameUploader) rebuildDBIndex(episode string, frames []Frame) error {
 
 	bar.SetTotal(bar.Current(), true)
 	bar.Wait()
+
+	return nil
+}
+
+func (fu *FrameUploader) reindexSearchRecords(episode string) error {
+	fmt.Println("Reindexing episodes in Elasticsearch")
+
+	// Delete index records by episode
+	_, err := fu.esClient.DeleteByQuery(
+		[]string{"frames"},
+		strings.NewReader(fmt.Sprintf(`{"query": {"match": {"episode": "%s"}}}`, episode)),
+	)
+	if err != nil {
+		return err
+	}
+
+	// Execute a COUNT query to get the total number of rows
+	countQuery := `
+        SELECT COUNT(*)
+        FROM subtitles s
+		JOIN frames f ON s.episode = f.episode
+			AND f.timestamp BETWEEN s.start_timestamp AND s.end_timestamp
+		WHERE f.id = (
+			SELECT MIN(f2.id)
+			FROM frames f2
+			WHERE f2.episode = s.episode
+			AND f2.timestamp BETWEEN s.start_timestamp AND s.end_timestamp
+		)
+        AND s.episode = $1;
+    `
+
+	var totalRows int
+	err = fu.db.QueryRow(countQuery, episode).Scan(&totalRows)
+	if err != nil {
+		return err
+	}
+
+	query := `
+		SELECT
+			s.episode AS episode,
+			s.text AS subtitle,
+			f.timestamp AS timestamp,
+			f.created_at AS created_at,
+			f.id AS frame_id
+		FROM subtitles s
+		JOIN frames f ON s.episode = f.episode
+			AND f.timestamp BETWEEN s.start_timestamp AND s.end_timestamp
+		WHERE f.id = (
+			SELECT MIN(f2.id)
+			FROM frames f2
+			WHERE f2.episode = s.episode
+			AND f2.timestamp BETWEEN s.start_timestamp AND s.end_timestamp
+		)
+		AND s.episode = $1
+		ORDER BY s.id;
+	`
+
+	rows, err := fu.db.Query(query, episode)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	bar := newProgressBar(fu.p, int64(totalRows), fmt.Sprintf("[%s] Indexing frames in Elasticsearch ", episode))
+
+	bi, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
+		Index:         "frames",
+		Client:        fu.esClient,
+		NumWorkers:    4,                // Number of workers
+		FlushBytes:    5 * 1024 * 1024,  // Flush after 5MB
+		FlushInterval: 30 * time.Second, // Flush after 30 seconds
+	})
+	if err != nil {
+		return err
+	}
+
+	for rows.Next() {
+		start := time.Now()
+
+		var episode, subtitle, created_at string
+		var timestamp, frame_id int
+
+		if err := rows.Scan(&episode, &subtitle, &timestamp, &created_at, &frame_id); err != nil {
+			return err
+		}
+
+		doc := map[string]interface{}{
+			"episode":    episode,
+			"subtitle":   subtitle,
+			"timestamp":  timestamp,
+			"created_at": created_at,
+			"frame_id":   frame_id,
+		}
+
+		err := bi.Add(
+			context.Background(),
+			esutil.BulkIndexerItem{
+				Action:     "index",
+				DocumentID: fmt.Sprintf("%d", frame_id),
+				Body:       esutil.NewJSONReader(doc),
+			},
+		)
+		if err != nil {
+			return err
+		}
+
+		bar.Increment()
+		bar.DecoratorEwmaUpdate(time.Since(start))
+	}
+
+	if err := bi.Close(context.Background()); err != nil {
+		return err
+	}
 
 	return nil
 }

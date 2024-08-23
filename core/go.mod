@@ -1,6 +1,8 @@
 module github.com/99xtal/bluthinator/core
 
-go 1.20
+go 1.21
+
+toolchain go1.22.5
 
 require (
 	github.com/lib/pq v1.10.9
@@ -15,6 +17,7 @@ require (
 	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/elastic/go-elasticsearch/v7 v7.17.10 // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/google/uuid v1.6.0 // indirect
