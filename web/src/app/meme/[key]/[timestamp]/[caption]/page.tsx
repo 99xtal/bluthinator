@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-import { defonteRegular } from "~/fonts";
+import { ffBlurProMedium } from "~/fonts";
 import GoBackLink from "~/app/components/GoBackLink";
 import ShareToFacebook from "~/app/components/ShareToFacebook";
 
@@ -10,7 +10,7 @@ export default async function Page({ params }: { params: { key: string, timestam
     return (
       <div>
         <div className="flex justify-start">
-          <GoBackLink className={`${defonteRegular.className} text-md text-theme-black hover:underline`}>
+          <GoBackLink className={`${ffBlurProMedium.className} text-md text-theme-black hover:underline`}>
             Back to Caption
           </GoBackLink>
         </div>

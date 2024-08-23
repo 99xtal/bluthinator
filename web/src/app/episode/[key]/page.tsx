@@ -1,4 +1,4 @@
-import { defonteRegular } from "~/fonts";
+import { ffBlurProMedium } from "~/fonts";
 
 import FrameLink from "~/app/components/FrameLink";
 import ScrollToAnchor from "~/app/components/ScrollToAnchor";
@@ -24,10 +24,10 @@ export default async function Page({ params }: { params: { key: string } }) {
                             </div>
                             <div className="flex flex-1 flex-col justify-center">
                                 <div className={`transform ${i % 2 === 0 ? 'rotate-2.5' : '-rotate-2.5'}`}>
-                                    <h1 className={`${defonteRegular.className} text-xl`}>{subtitle.text}</h1>
+                                    <h1 className={`${ffBlurProMedium.className} text-xl`}>{subtitle.text}</h1>
                                 </div>
                                 <div className={`transform ${i % 2 === 0 ? 'rotate-2.5' : '-rotate-2.5'}`}>
-                                    <p className={`${defonteRegular.className} text-theme-red`}>{msToTime(subtitle.start_timestamp)} - {msToTime(subtitle.end_timestamp)}</p>
+                                    <p className={`${ffBlurProMedium.className} text-theme-red`}>{msToTime(subtitle.start_timestamp)} - {msToTime(subtitle.end_timestamp)}</p>
                                 </div>
                             </div>
                         </div>

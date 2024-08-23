@@ -62,7 +62,7 @@ func (s *Server) GetCaptionedFrame(w http.ResponseWriter, r *http.Request) {
 
 	fontColor := [3]float64{0.97254, 0.89803, 0.67843}
 	fontSize := float64(48)
-	if err := dc.LoadFontFace("static/fonts/DeFonteReducedNormal.ttf", fontSize); err != nil {
+	if err := dc.LoadFontFace("static/fonts/FFBlurProMedium/font.woff2", fontSize); err != nil {
 		panic(err)
 	}
 

@@ -4,7 +4,7 @@ import Image from "next/image"
 import { useState } from "react";
 import Link from "next/link";
 
-import { defonteRegular } from "~/fonts";
+import { ffBlurProMedium } from "~/fonts";
 import { getFrameUrl, msToTime } from "~/utils"
 import { Episode, Frame, Subtitle } from "~/types";
 import { Button, Caption, Divider, SubtitleText, TextLink, TitleText } from "~/app/elements";
@@ -50,11 +50,11 @@ export default function FrameEditor({ frame, episode, subtitle }: { frame: Frame
                         <textarea
                             value={caption}
                             onChange={(e) => setCaption(e.target.value)}
-                            className={`${defonteRegular.className} w-full p-2 text-lg text-theme-black bg-transparent border border-gray-300 outline-none resize-none`}
+                            className={`${ffBlurProMedium.className} w-full p-2 text-lg text-theme-black bg-transparent border border-gray-300 outline-none resize-none`}
                             rows={3}
                         />
                     ) : (
-                        subtitle && <h3 className={`${defonteRegular.className} text-lg text-theme-black`}>
+                        subtitle && <h3 className={`${ffBlurProMedium.className} text-lg text-theme-black`}>
                             {'"' + subtitle?.text + '"'}
                         </h3>
                     )
@@ -69,7 +69,7 @@ export default function FrameEditor({ frame, episode, subtitle }: { frame: Frame
                     }
                     {isMemeMode && (
                         <>
-                            <Link href={`/meme/${frame.episode}/${frame.timestamp}/${btoa(caption)}`} className={`${defonteRegular.className} flex-1 bg-theme-red text-white p-2 rounded-md flex justify-center items-center`}>
+                            <Link href={`/meme/${frame.episode}/${frame.timestamp}/${btoa(caption)}`} className={`${ffBlurProMedium.className} flex-1 bg-theme-red text-white p-2 rounded-md flex justify-center items-center`}>
                                 Generate Meme
                             </Link>
                             <Button onClick={handleCancel}>

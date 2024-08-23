@@ -1,8 +1,8 @@
 import React from "react";
-import { defonteRegular } from "~/fonts";
+import { ffBlurProMedium } from "~/fonts";
 
 export default function SubtitleText({ children }: { children: string }) {
     return (
-        <h3 className={`${defonteRegular.className} text-xl text-theme-red`}>{children}</h3>
+        <h3 className={`${ffBlurProMedium.className} text-xl text-theme-red`}>{children}</h3>
     )
 }
