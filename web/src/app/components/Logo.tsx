@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import TitleText from "../elements/TitleText";
 
 export default function Logo() {
-    const [isLargeScreen, setIsLargeScreen] = useState(false);
+    const [isLargeScreen, setIsLargeScreen] = useState(() => window.matchMedia('(min-width: 640px)').matches);
 
     useEffect(() => {
         const mediaQuery = window.matchMedia('(min-width: 640px)');
