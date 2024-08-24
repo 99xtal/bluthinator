@@ -50,7 +50,7 @@ export default function RootLayout({
         </Script>
         <Script async defer crossOrigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></Script>
         <header className="z-50 sticky top-0 flex flex-row justify-center items-center bg-white border-black border-b-4" >
-          <div className="hidden md:block px-16">
+          <div className="px-8 sm:px-16">
             <Link href="/">
                 <Logo />
             </Link>

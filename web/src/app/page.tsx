@@ -11,7 +11,7 @@ export default async function Home({ searchParams}: { searchParams: { q?: string
 
   return (
     <div className="flex justify-center">
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-0 lg:gap-2">
         {data.map((result: any, i: number) => (
           <div key={result.timestamp + result.episode + i} className="p-1">
             <FrameLink episode={result.episode} timestamp={result.timestamp} size="medium" />

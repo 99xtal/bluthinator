@@ -1,7 +1,6 @@
 import Image from "next/image";
 
 import { ffBlurProMedium } from "~/fonts";
-import GoBackLink from "~/app/components/GoBackLink";
 import ShareToFacebook from "~/app/components/ShareToFacebook";
 import Link from "next/link";
 
@@ -9,7 +8,7 @@ export default async function Page({ params }: { params: { key: string, timestam
     const url = `${process.env.NEXT_PUBLIC_API_HOST}/caption/${params.key}/${params.timestamp}?b=${params.caption}`;
  
     return (
-      <div className="flex justify-center items-center p-8">
+      <div className="flex justify-center items-center">
         <div className="flex flex-col gap-4">
           <Image src={url} alt={params.caption} width={640} height={360} className="outline outline-4 outline-theme-black" />
           <div className="flex justify-between items-center">
