@@ -20,7 +20,7 @@ export default async function Home({ searchParams}: { searchParams: { q?: string
           ))}
         </div>
       </div>
-      <footer className="bg-white py-4">
+      <footer className="bg-theme-white py-4">
         <div className="container mx-auto flex justify-center text-center text-gray-500 text-sm">
           Created By&nbsp;<a href="https://www.99xtal.com" className="underline">7\</a>
         </div>
