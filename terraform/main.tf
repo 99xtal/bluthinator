@@ -19,6 +19,10 @@ provider "aws" {
   }
 }
 
+locals {
+  acm_certificate_arn = "arn:aws:acm:us-east-1:635676917059:certificate/a45a94db-250c-43d7-b463-432c2617c251"
+}
+
 module "vpc" {
   source = "./modules/vpc"
 
@@ -37,12 +41,11 @@ module "rds" {
   subnet_group_name  = aws_db_subnet_group.database_subnet_group.name
 }
 
-resource "aws_s3_bucket" "image_bucket" {
-  bucket = "bluthinator-images"
+module "image_distribution" {
+  source = "./modules/image_distribution"
 
-  tags = {
-    Name = "Bluthinator Image Bucket"
-  }
+  s3_bucket_name = "bluthinator-images"
+  acm_certificate_arn = local.acm_certificate_arn
 }
 
 resource "aws_db_subnet_group" "database_subnet_group" {
