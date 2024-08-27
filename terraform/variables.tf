@@ -37,3 +37,8 @@ variable "db_password" {
   description = "The password for the database."
   type        = string
 }
+
+variable "aws_application_rg" {
+  description = "The application resource group."
+  type        = string
+}

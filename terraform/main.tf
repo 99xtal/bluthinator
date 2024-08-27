@@ -11,6 +11,12 @@ terraform {
 
 provider "aws" {
   region = var.region
+
+  default_tags {
+    tags = {
+      awsApplication = var.aws_application_rg
+    }
+  }
 }
 
 module "vpc" {
@@ -29,6 +35,14 @@ module "rds" {
   password           = var.db_password
   security_group_ids = [aws_security_group.db_security_group.id]
   subnet_group_name  = aws_db_subnet_group.database_subnet_group.name
+}
+
+resource "aws_s3_bucket" "image_bucket" {
+  bucket = "bluthinator-images"
+
+  tags = {
+    Name = "Bluthinator Image Bucket"
+  }
 }
 
 resource "aws_db_subnet_group" "database_subnet_group" {
