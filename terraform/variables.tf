@@ -42,3 +42,8 @@ variable "aws_application_rg" {
   description = "The application resource group."
   type        = string
 }
+
+variable "basion_server_ingress_cidr" {
+  description = "The CIDR block for the bastion server."
+  type        = string
+}
