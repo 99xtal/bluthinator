@@ -78,6 +78,49 @@ resource "aws_instance" "bastion_server" {
   }
 }
 
+resource "aws_instance" "elastic_search_server" {
+  ami           = "ami-096ea6a12ea24a797" # Ubuntu 22.04 LTS
+  instance_type = "c6g.medium"
+  key_name      = "bluthinator-elasticsearch-server-key"
+  subnet_id     = module.vpc.private_subnet_ids[0]
+  vpc_security_group_ids = [aws_security_group.elasticsearch_sg.id]
+
+  tags = {
+    Name = "Bluthinator ElasticSearch Server"
+  }
+}
+
+resource "aws_security_group" "elasticsearch_sg" {
+  name        = "elasticsearch-sg"
+  description = "Allow access to Elasticsearch from the bastion server"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress {
+    from_port   = 9200
+    to_port     = 9200
+    protocol    = "tcp"
+    security_groups = [aws_security_group.bastion_server_sg.id]
+  }
+
+  ingress {
+    from_port = 22
+    to_port   = 22
+    protocol  = "tcp"
+    security_groups = [aws_security_group.bastion_server_sg.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "Elasticsearch Security Group"
+  }
+}
+
 resource "aws_db_subnet_group" "database_subnet_group" {
   name       = "database-subnet-group"
   subnet_ids = module.vpc.private_subnet_ids
