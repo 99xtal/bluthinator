@@ -158,3 +158,16 @@ resource "aws_ecr_repository" "api_image_repo" {
     Name = "Bluthinator API Image Repository"
   }
 }
+
+resource "aws_ecr_repository" "web_image_repo" {
+  name = "bluthinator-web"
+
+  image_tag_mutability = "MUTABLE"
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Name = "Bluthinator Web Server Image Repository"
+  }
+}
