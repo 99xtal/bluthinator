@@ -18,4 +18,4 @@ fi
 SUBTITLE_CSV_PATH="$1"
 
 # Load the new subtitle records into the database
-psql -c "\COPY subtitles (start_timestamp, end_timestamp, text, episode) FROM $SUBTITLE_CSV_PATH WITH (FORMAT csv, HEADER false);"
+psql -c "\COPY subtitles (start_timestamp, end_timestamp, text, episode) FROM $SUBTITLE_CSV_PATH WITH (FORMAT csv, HEADER true);"
