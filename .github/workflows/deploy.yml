@@ -9,6 +9,7 @@ permissions:
 
 env:
   AWS_REGION: "us-east-1"
+  ECR_API_REPOSITORY: ${{ secrets.ECR_API_REPOSITORY }}
 
 jobs:
   deploy:
@@ -26,4 +27,16 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ACTIONS_ROLE_ARN }}
           role-session-name: github-actions-session
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@62f4f872db3836360b72999f4b87f1ff13310f3a
+
+      - name: Build, tag, and push API image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_API_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_API_REPOSITORY:$IMAGE_TAG
+          
   
