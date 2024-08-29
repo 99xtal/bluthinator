@@ -12,8 +12,8 @@ env:
   ECR_API_REPOSITORY: ${{ secrets.ECR_API_REPOSITORY }}
 
 jobs:
-  deploy:
-    name: Deploy
+  build-images:
+    name: Build Docker Images
     runs-on: ubuntu-latest
     environment: production
 
@@ -37,7 +37,9 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_API_REPOSITORY:$IMAGE_TAG ./api
-          docker push $ECR_REGISTRY/$ECR_API_REPOSITORY:$IMAGE_TAG
+          docker build -t $ECR_REGISTRY/$ECR_API_REPOSITORY ./api
+          docker tag $ECR_REGISTRY/$ECR_API_REPOSITORY:${{ github.sha }}
+          docker tag $ECR_REGISTRY/$ECR_API_REPOSITORY:latest
+          docker push --all-tags $ECR_REGISTRY/$ECR_API_REPOSITORY
           
   
