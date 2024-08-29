@@ -1,14 +1,5 @@
 #!/bin/bash
 
-# This script is used to process subtitles for episode files and upload the data to Postgres.
-
-# Set PostgreSQL environment variables
-# export PGUSER=postgres
-# export PGHOST=localhost
-# export PGPORT=5432
-# export PGPASSWORD=postgres
-# export PGDATABASE=bluthinator
-
 # Check if a directory argument is provided
 if [ -z "$1" ]; then
   echo "Usage: $0 <directory>"
@@ -22,18 +13,13 @@ fi
 
 EPISODE_DIR="$1"
 
-# Print CSV header
-echo "start_timestamp,end_timestamp,text,episode"
+echo "start_timestamp,end_timestamp,text,episode" > subtitles.csv
 
 for file in "$EPISODE_DIR"/*.mkv; do
   # Extract the episode name without extension
   episode=$(basename "$file" .mkv)
   echo "Processing subtitles for $episode..."
 
-  # Delete existing records for the episode
-  psql -c "DELETE FROM subtitles WHERE episode = '$episode';"
-
-  # Extract the subtitle file
   ffmpeg -i "$file" -map 0:s:0 -f srt - 2>/dev/null | \
   awk -v episode="$(basename "$file" .mkv)" 'BEGIN { RS=""; FS="\n" } 
       {
@@ -63,11 +49,6 @@ for file in "$EPISODE_DIR"/*.mkv; do
         }
 
         print start_time_ms "," end_time_ms "," subtitle_text "," episode;
-      }' > subtitles.csv
-
-  # Load the new subtitle records into the database
-  psql -c "\COPY subtitles (start_timestamp, end_timestamp, text, episode) FROM 'subtitles.csv' WITH (FORMAT csv, HEADER false);"
-
-  # Remove the temporary CSV file
-  rm subtitles.csv
+      }' >> subtitles.csv
 done
+
