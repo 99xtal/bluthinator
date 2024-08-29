@@ -38,8 +38,8 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_API_REPOSITORY ./api
-          docker tag $ECR_REGISTRY/$ECR_API_REPOSITORY:${{ github.sha }}
-          docker tag $ECR_REGISTRY/$ECR_API_REPOSITORY:latest
+          docker tag $ECR_REGISTRY/$ECR_API_REPOSITORY $ECR_REGISTRY/$ECR_API_REPOSITORY:${{ github.sha }}
+          docker tag $ECR_REGISTRY/$ECR_API_REPOSITORY $ECR_REGISTRY/$ECR_API_REPOSITORY:latest
           docker push --all-tags $ECR_REGISTRY/$ECR_API_REPOSITORY
           
   
