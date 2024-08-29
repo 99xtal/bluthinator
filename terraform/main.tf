@@ -67,8 +67,8 @@ resource "aws_security_group" "bastion_server_sg" {
 }
 
 resource "aws_instance" "bastion_server" {
-  ami           = "ami-066784287e358dad1"
-  instance_type = "t2.micro"
+  ami           = "ami-0e86e20dae9224db8" # Ubuntu 22.04 LTS (x86_64)
+  instance_type = "t2.small"
   key_name      = "bluthinator-bastion-server-key"
   subnet_id     = module.vpc.public_subnet_ids[0]
   vpc_security_group_ids = [aws_security_group.bastion_server_sg.id]
@@ -79,7 +79,7 @@ resource "aws_instance" "bastion_server" {
 }
 
 resource "aws_instance" "elastic_search_server" {
-  ami           = "ami-096ea6a12ea24a797" # Ubuntu 22.04 LTS
+  ami           = "ami-096ea6a12ea24a797" # Ubuntu 22.04 LTS (arm)
   instance_type = "c6g.medium"
   key_name      = "bluthinator-elasticsearch-server-key"
   subnet_id     = module.vpc.private_subnet_ids[0]
@@ -95,30 +95,31 @@ resource "aws_security_group" "elasticsearch_sg" {
   description = "Allow access to Elasticsearch from the bastion server"
   vpc_id      = module.vpc.vpc_id
 
-  ingress {
-    from_port   = 9200
-    to_port     = 9200
-    protocol    = "tcp"
-    security_groups = [aws_security_group.bastion_server_sg.id]
-  }
-
-  ingress {
-    from_port = 22
-    to_port   = 22
-    protocol  = "tcp"
-    security_groups = [aws_security_group.bastion_server_sg.id]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   tags = {
     Name = "Elasticsearch Security Group"
   }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "elasticsearch_sg_ingress_rule_es" {
+  security_group_id = aws_security_group.elasticsearch_sg.id
+  from_port         = 9200
+  to_port           = 9200
+  ip_protocol       = "tcp"
+  referenced_security_group_id = aws_security_group.bastion_server_sg.id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "elasticsearch_sg_ingress_rule_ssh" {
+  security_group_id = aws_security_group.elasticsearch_sg.id
+  from_port         = 22
+  to_port           = 22
+  ip_protocol       = "tcp"
+  referenced_security_group_id = aws_security_group.bastion_server_sg.id
+}
+
+resource "aws_vpc_security_group_egress_rule" "elasticsearch_sg_egress_rule" {
+  security_group_id = aws_security_group.elasticsearch_sg.id
+  ip_protocol       = "-1"
+  cidr_ipv4         = "0.0.0.0/0"
 }
 
 resource "aws_db_subnet_group" "database_subnet_group" {
@@ -142,5 +143,18 @@ resource "aws_security_group" "db_security_group" {
 
   tags = {
     Name = "Bluthinator DB Security Group"
+  }
+}
+
+resource "aws_ecr_repository" "api_image_repo" {
+  name = "bluthinator-api"
+
+  image_tag_mutability = "MUTABLE"
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Name = "Bluthinator API Image Repository"
   }
 }
