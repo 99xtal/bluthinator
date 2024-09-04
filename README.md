@@ -2,6 +2,8 @@
 
 Bluthinator is an Arrested Development search engine. Search by quotes and generate memes and GIFs from your favorite moments of Seasons 1-3.
 
+![Image of Lucille Bluth, captioned "It's one EC2 instance, Michael. What could it cost, $10?"](https://api.bluthinator.com/caption/S1E06/381291?b=SXQncyBvbmUgRUMyIGluc3RhbmNlLCBNaWNoYWVsLiBXaGF0IGNvdWxkIGl0IGNvc3QsICQxMD8=)
+
 ## Project Overview
 
 ### Core
