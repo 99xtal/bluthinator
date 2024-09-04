@@ -16,6 +16,7 @@ const config: Config = {
       colors: {
         "theme-white": "#F5F5F5",
         "theme-red": "#C74A3E",
+        "theme-red-shadow": "#99372E",
         "theme-orange": "#FEA34b",
         "theme-yellow": "#F8E5AD",
         "theme-black": "#030303"

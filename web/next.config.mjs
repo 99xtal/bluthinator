@@ -3,23 +3,10 @@ const nextConfig = {
     images: {
         remotePatterns: [
             {
-                protocol: 'http',
-                hostname: 'localhost',
-                port: '9000',
-                pathname: '/bluthinator/**'
-            },
-            {
-                protocol: 'http',
-                hostname: 'homelab',
-                port: '9000',
-                pathname: '/bluthinator/**'
-            },
-            {
-                protocol: 'http',
-                hostname: 'homelab',
-                port: '8000',
+                protocol: 'https',
+                hostname: 'api.bluthinator.com',
                 pathname: '/caption/**'
-            }
+            },
         ]
     },
     async rewrites() {

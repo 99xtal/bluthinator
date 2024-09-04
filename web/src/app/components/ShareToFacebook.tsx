@@ -15,7 +15,7 @@ export default function ShareToFacebook({ url, hashtag }: { url: string, hashtag
       }
 
     return (
-        <Button onClick={handleShareToFacebook} className="px-6 py-2">
+        <Button onClick={handleShareToFacebook} title="Share To Facebook" className="px-6 py-2">
           <Image 
             src={logo}
             alt="Share to Facebook"

@@ -3,6 +3,7 @@ import Image from "next/image";
 import { ffBlurProMedium } from "~/fonts";
 import ShareToFacebook from "~/app/components/ShareToFacebook";
 import Link from "next/link";
+import CopyLinkButton from "~/app/components/CopyLinkButton";
 
 export default async function Page({ params }: { params: { key: string, timestamp: string, caption: string } }) {
     const url = `${process.env.NEXT_PUBLIC_API_HOST}/caption/${params.key}/${params.timestamp}?b=${params.caption}`;
@@ -15,7 +16,10 @@ export default async function Page({ params }: { params: { key: string, timestam
             <Link href={`/episode/${params.key}/${params.timestamp}`} className={`${ffBlurProMedium.className} text-lg text-theme-black hover:underline`}>
               &larr; Back to Episode
             </Link>
-            <ShareToFacebook hashtag="#bluthinator" url={'https://www.youtube.com/watch?v=zmoOaw42c4I'}/>
+            <div className="flex gap-2 items-center">
+              <CopyLinkButton />
+              <ShareToFacebook hashtag="#bluthinator" url={'https://www.youtube.com/watch?v=zmoOaw42c4I'}/>
+            </div>
           </div>
         </div>
       </div>
