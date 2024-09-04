@@ -35,7 +35,7 @@ func (s *Server) GetCaptionedFrame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := s.ObjectStorage.GetObject(fmt.Sprintf("bluthinator/frames/%s/%s/large.jpg", key, timestamp))
+	data, err := s.ObjectStorage.GetObject(fmt.Sprintf("frames/%s/%s/large.jpg", key, timestamp))
 	if err != nil {
 		http.Error(w, "Error fetching the image", http.StatusInternalServerError)
 		return
@@ -89,13 +89,13 @@ func drawCaption(img image.Image, caption string) (image.Image, error) {
 		return nil, err
 	}
 
-	lines := splitTextIntoLines(dc, caption, imgWidth - imgPadding)
+	lines := splitTextIntoLines(dc, caption, imgWidth-imgPadding)
 	if len(lines) > 1 {
 		fontSize = float64(32)
 		if err := dc.LoadFontFace("static/fonts/FFBlurProMedium/font.ttf", fontSize); err != nil {
 			return nil, err
 		}
-		lines = splitTextIntoLines(dc, caption, imgWidth - imgPadding)
+		lines = splitTextIntoLines(dc, caption, imgWidth-imgPadding)
 	}
 
 	lineHeight := fontSize * 1.0
