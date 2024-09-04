@@ -11,7 +11,9 @@ export default async function Page({ params }: { params: { key: string, timestam
     return (
       <div className="flex justify-center items-center">
         <div className="flex flex-col gap-4">
-          <Image src={url} alt={params.caption} width={640} height={360} className="outline outline-4 outline-theme-black" />
+          <Link href={`/img/caption/${params.key}/${params.timestamp}/${params.caption}`}>
+            <Image src={url} alt={params.caption} width={640} height={360} className="outline outline-4 outline-theme-black" />
+          </Link>
           <div className="flex justify-between items-center">
             <Link href={`/episode/${params.key}/${params.timestamp}`} className={`${ffBlurProMedium.className} text-lg text-theme-black hover:underline`}>
               &larr; Back to Episode
