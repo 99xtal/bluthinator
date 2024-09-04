@@ -7,6 +7,7 @@ import Search from "./components/Search";
 import { Suspense } from "react";
 import Providers from "./providers";
 import Script from "next/script";
+import { Button } from "./elements";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,7 +29,7 @@ const references = [
 ]
 
 function genSearchPlaceholder() {
-  return `Search for quotes (like "${references[Math.floor(Math.random() * references.length)]}")`;
+  return `"${references[Math.floor(Math.random() * references.length)]}"`;
 }
 
 export default function RootLayout({
@@ -53,13 +54,16 @@ export default function RootLayout({
             <Link href="/">
                 <Logo />
             </Link>
-          <div className="px-8 py-4 bg-theme-orange flex flex-grow">
+          <div className="px-4 md:px-8 py-4 bg-theme-orange flex flex-grow gap-2">
             <Suspense>
               <Search 
                 placeholder={genSearchPlaceholder()} 
                 className="w-full border border-gray-300 rounded-full p-2 focus:outline-none focus:ring-2 focus:ring-gray-400 hover:border-gray-400"
               />
             </Suspense>
+            <Button>
+              <a href="/random">Random</a>
+            </Button>
           </div>
         </header>
         <main className="container mx-auto p-4 lg:p-8">
