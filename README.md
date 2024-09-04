@@ -1,4 +1,4 @@
-# Bluthinator
+# Bluthinator 🍌
 
 Bluthinator is an Arrested Development search engine. Search by quotes and generate memes and GIFs from your favorite moments of Seasons 1-3.
 
