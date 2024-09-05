@@ -4,6 +4,30 @@ import { ffBlurProMedium } from "~/fonts";
 import ShareToFacebook from "~/app/components/ShareToFacebook";
 import Link from "next/link";
 import CopyLinkButton from "~/app/components/CopyLinkButton";
+import { Metadata } from "next";
+
+type Props = {
+  params: { key: string, timestamp: string, caption: string }
+}
+
+export async function generateMetadata(
+  { params }: Props,
+): Promise<Metadata> {
+  return {
+    openGraph: {
+      title: "Bluthinator",
+      description: "Check out this meme from Bluthinator!",
+      images: [
+        {
+          url: `${process.env.NEXT_PUBLIC_API_HOST}/caption/${params.key}/${params.timestamp}?b=${params.caption}`,
+          width: 720,
+          height: 405,
+          alt: "Bluthinator meme",
+        },
+      ]
+    }
+  }
+}
 
 export default async function Page({ params }: { params: { key: string, timestamp: string, caption: string } }) {
     const url = `${process.env.NEXT_PUBLIC_API_HOST}/caption/${params.key}/${params.timestamp}?b=${params.caption}`;
@@ -20,7 +44,7 @@ export default async function Page({ params }: { params: { key: string, timestam
             </Link>
             <div className="flex gap-2 items-center">
               <CopyLinkButton />
-              <ShareToFacebook hashtag="#bluthinator" url={'https://www.youtube.com/watch?v=zmoOaw42c4I'}/>
+              <ShareToFacebook hashtag="#bluthinator" />
             </div>
           </div>
         </div>
