@@ -1,3 +1,4 @@
+import Link from "next/link";
 import FrameLink from "./components/FrameLink";
 
 async function search(query: string): Promise<any> {
@@ -20,10 +21,13 @@ export default async function Home({ searchParams}: { searchParams: { q?: string
           ))}
         </div>
       </div>
-      <footer className="bg-theme-white py-4">
-        <div className="container mx-auto flex justify-center text-center text-gray-500 text-sm">
+      <footer className="container mx-auto bg-theme-white py-4 flex justify-between">
+        <div className="text-center text-gray-500 text-sm">
           Created By&nbsp;<a href="https://www.99xtal.com" className="underline">7\</a>
         </div>
+        <Link href="/about" className="text-center text-gray-500 text-sm underline">
+          About
+        </Link>
       </footer>
     </div>
   );
