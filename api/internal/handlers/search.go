@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 func (s *Server) SearchFrames(w http.ResponseWriter, r *http.Request) {
@@ -27,7 +29,15 @@ func (s *Server) SearchFrames(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		searchRequest["query"] = map[string]interface{}{
-			"match_all": map[string]interface{}{},
+			"function_score": map[string]interface{}{
+				"functions": []map[string]interface{}{
+					{
+						"random_score": map[string]interface{}{
+							"seed": strconv.FormatInt(time.Now().Unix(), 10),
+						},
+					},
+				},
+			},
 		}
 	}
 
