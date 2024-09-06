@@ -23,7 +23,7 @@ type Config struct {
 }
 
 func (c *Config) GetPostgresConnString() string {
-	return "host=" + c.PostgresHost + " port=" + c.PostgresPort + " user=" + c.PostgresUser + " password=" + c.PostgresPass + " dbname=" + c.PostgresDB + " sslmode=disable"
+	return "host=" + c.PostgresHost + " port=" + c.PostgresPort + " user=" + c.PostgresUser + " password=" + c.PostgresPass + " dbname=" + c.PostgresDB + " sslmode=require"
 }
 
 func (c *Config) GetElasticSearchConfig() elasticsearch.Config {
