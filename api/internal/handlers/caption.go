@@ -34,6 +34,10 @@ func (s *Server) GetCaptionedFrame(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error decoding the base64-encoded caption", http.StatusBadRequest)
 		return
 	}
+	if len(caption) > 500 {
+		http.Error(w, "Caption is too long", http.StatusBadRequest)
+		return
+	}
 
 	data, err := s.ObjectStorage.GetObject(fmt.Sprintf("frames/%s/%s/large.jpg", key, timestamp))
 	if err != nil {
