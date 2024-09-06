@@ -16,7 +16,8 @@ export async function getEpisode(key: string) {
 }
 
 export async function search(query: string): Promise<any> {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_HOST}/search?q=${query}`);
+    const cache = query.length === 0 ? "no-store" : "default";
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_HOST}/search?q=${query}`, { cache });
     return response.json();
 }
 
