@@ -1,13 +1,13 @@
+import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Link from "next/link";
-import "./globals.css";
-import Logo from "~/components/Logo";
-import Search from "~/components/Search";
-import { Suspense } from "react";
-import Providers from "./providers";
 import Script from "next/script";
-import { Button } from "../elements";
+import { Suspense } from "react";
+
+import { Logo, Search } from "~/components";
+import Providers from "./providers";
+import { Button } from "~/elements";
 
 const inter = Inter({ subsets: ["latin"] });
 

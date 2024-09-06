@@ -1,10 +1,8 @@
-import Image from "next/image";
-
-import { ffBlurProMedium } from "~/assets/fonts";
-import ShareToFacebook from "~/components/ShareToFacebook";
-import Link from "next/link";
-import CopyLinkButton from "~/components/CopyLinkButton";
 import { Metadata } from "next";
+import Link from "next/link";
+import Image from "next/image";
+import { ffBlurProMedium } from "~/assets/fonts";
+import { ShareToFacebook, CopyLinkButton } from "~/components";
 
 type Props = {
   params: { key: string, timestamp: string, caption: string }

@@ -1,10 +1,6 @@
 import Link from "next/link";
-import FrameLink from "~/components/FrameLink";
-
-async function search(query: string): Promise<any> {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_HOST}/search?q=${query}`);
-  return response.json();
-}
+import { search } from "~/api";
+import { FrameLink } from "~/components";
 
 export default async function Home({ searchParams}: { searchParams: { q?: string; } }) {
   const query = searchParams?.q || '';
