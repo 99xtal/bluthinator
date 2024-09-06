@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
-import Logo from "./components/Logo";
-import Search from "./components/Search";
+import Logo from "~/components/Logo";
+import Search from "~/components/Search";
 import { Suspense } from "react";
 import Providers from "./providers";
 import Script from "next/script";
-import { Button } from "./elements";
+import { Button } from "../elements";
 
 const inter = Inter({ subsets: ["latin"] });
 

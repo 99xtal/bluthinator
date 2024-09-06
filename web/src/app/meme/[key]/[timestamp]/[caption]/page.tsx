@@ -1,9 +1,9 @@
 import Image from "next/image";
 
-import { ffBlurProMedium } from "~/fonts";
-import ShareToFacebook from "~/app/components/ShareToFacebook";
+import { ffBlurProMedium } from "~/assets/fonts";
+import ShareToFacebook from "~/components/ShareToFacebook";
 import Link from "next/link";
-import CopyLinkButton from "~/app/components/CopyLinkButton";
+import CopyLinkButton from "~/components/CopyLinkButton";
 import { Metadata } from "next";
 
 type Props = {

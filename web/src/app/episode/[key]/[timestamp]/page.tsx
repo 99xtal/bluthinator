@@ -1,8 +1,8 @@
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { Metadata } from "next";
 import { getFrame, getNearbyFrames } from "~/api";
-import FrameEditor from "~/app/components/FrameEditor";
-import NearbySelector from "~/app/components/NearbySelector";
+import FrameEditor from "~/components/FrameEditor";
+import NearbySelector from "~/components/NearbySelector";
 
 interface Props {
   params: { key: string, timestamp: string }

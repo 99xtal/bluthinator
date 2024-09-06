@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { Button } from "../elements";
+import { Button } from "~/elements";
 import copySvg from "~/assets/svg/copy.svg";
 import { useState } from "react";
-import { ffBlurProMedium } from "~/fonts";
+import { ffBlurProMedium } from "~/assets/fonts";
 
 export default function CopyLinkButton() {
     const [copied, setCopied] = useState(false);

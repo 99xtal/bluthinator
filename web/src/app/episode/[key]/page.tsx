@@ -1,11 +1,11 @@
-import { ffBlurProMedium } from "~/fonts";
+import { ffBlurProMedium } from "~/assets/fonts";
 
-import FrameLink from "~/app/components/FrameLink";
-import ScrollToAnchor from "~/app/components/ScrollToAnchor";
+import FrameLink from "~/components/FrameLink";
+import ScrollToAnchor from "~/components/ScrollToAnchor";
 import { msToTime } from "~/utils";
-import { SubtitleText, TitleText } from "~/app/elements/";
+import { SubtitleText, TitleText } from "~/elements";
 import { getEpisode } from "~/api";
-import ScrollToTopButton from "~/app/components/ScrollToTopButton";
+import ScrollToTopButton from "~/components/ScrollToTopButton";
 
 export default async function Page({ params }: { params: { key: string } }) {
     const data = await getEpisode(params.key);

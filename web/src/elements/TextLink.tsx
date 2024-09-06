@@ -1,6 +1,6 @@
 import Link from "next/link";
 import React from "react";
-import { ffBlurProMedium } from "~/fonts";
+import { ffBlurProMedium } from "~/assets/fonts";
 
 export default function TextLink({ children, href }: { children: string, href: string }) {
     return (

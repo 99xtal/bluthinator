@@ -1,5 +1,5 @@
 import React from "react";
-import { ffBlurProMedium } from "~/fonts";
+import { ffBlurProMedium } from "~/assets/fonts";
 
 type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
     variant?: 'primary' | 'secondary'

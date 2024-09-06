@@ -1,5 +1,5 @@
 import React from "react";
-import { ffBlurProMedium } from "~/fonts";
+import { ffBlurProMedium } from "~/assets/fonts";
 
 export default function Caption({ children }: { children: string }) {
     return (

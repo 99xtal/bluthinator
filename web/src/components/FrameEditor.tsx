@@ -4,10 +4,10 @@ import Image from "next/image"
 import { useState } from "react";
 import Link from "next/link";
 
-import { ffBlurProMedium } from "~/fonts";
+import { ffBlurProMedium } from "~/assets/fonts";
 import { getFrameUrl, msToTime } from "~/utils"
 import { Episode, Frame, Subtitle } from "~/types";
-import { Button, Caption, Divider, SubtitleText, TextLink, TitleText } from "~/app/elements";
+import { Button, Caption, Divider, SubtitleText, TextLink, TitleText } from "~/elements";
 
 export default function FrameEditor({ frame, episode, subtitle }: { frame: Frame, episode: Episode, subtitle?: Subtitle }) {
     const [isMemeMode, setMemeMode] = useState(false)

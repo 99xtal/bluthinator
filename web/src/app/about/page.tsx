@@ -1,4 +1,4 @@
-import { ffBlurProMedium } from "~/fonts";
+import { ffBlurProMedium } from "~/assets/fonts";
 import Image from "next/image";
 import { getFrameUrl } from "~/utils";
 
