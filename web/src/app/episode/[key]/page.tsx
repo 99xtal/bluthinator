@@ -5,7 +5,19 @@ import { FrameLink, ScrollToAnchor, ScrollToTopButton } from "~/components";
 import { SubtitleText, TitleText } from "~/elements";
 import { msToTime } from "~/utils";
 
-export default async function Page({ params }: { params: { key: string } }) {
+interface Props {
+    params: {
+        key: string;
+    };
+}
+
+export function generateMetadata({ params }: Props) {
+    return {
+        title: `Bluthinator | ${params.key}`,
+    }
+}
+
+export default async function Page({ params }: Props) {
     const data = await getEpisode(params.key);
 
     return (
