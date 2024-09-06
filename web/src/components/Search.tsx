@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDebouncedCallback } from 'use-debounce';
+import { logEvent } from "~/utils/firebase";
 
 export default function Search({ placeholder, className }: { placeholder: string, className?: string }) {
     const searchParams = useSearchParams();
@@ -9,6 +10,7 @@ export default function Search({ placeholder, className }: { placeholder: string
     const { push, replace } = useRouter();  
 
     const handleSearch = useDebouncedCallback((query: string) => {
+        logEvent("search", { query });
         const params = new URLSearchParams(searchParams)
         if (query) {
             params.set("q", query);

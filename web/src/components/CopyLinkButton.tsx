@@ -5,6 +5,7 @@ import { Button } from "~/elements";
 import copySvg from "~/assets/svg/copy.svg";
 import { useState } from "react";
 import { ffBlurProMedium } from "~/assets/fonts";
+import { logEvent } from "~/utils/firebase";
 
 export default function CopyLinkButton() {
     const [copied, setCopied] = useState(false);
@@ -13,6 +14,7 @@ export default function CopyLinkButton() {
         await navigator.clipboard.writeText(window.location.href);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+        logEvent("copy_meme_link", { pathname: window.location.pathname });
     }
 
     return (

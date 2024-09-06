@@ -8,14 +8,25 @@ import { ffBlurProMedium } from "~/assets/fonts";
 import { getFrameUrl, msToTime } from "~/utils"
 import { Episode, Frame, Subtitle } from "~/types";
 import { Button, Caption, Divider, SubtitleText, TextLink, TitleText } from "~/elements";
+import { logEvent } from "~/utils/firebase";
 
 export default function FrameEditor({ frame, episode, subtitle }: { frame: Frame, episode: Episode, subtitle?: Subtitle }) {
     const [isMemeMode, setMemeMode] = useState(false)
     const [caption, setCaption] = useState(subtitle?.text || '')
+
+    const handleMakeMeme = () => {
+        setMemeMode(true)
+        logEvent('edit_meme', { episode: frame.episode, timestamp: frame.timestamp })
+    }
     
     const handleCancel = () => {
         setMemeMode(false)
         setCaption(subtitle?.text || '')
+        logEvent('cancel_meme', { episode: frame.episode, timestamp: frame.timestamp })
+    }
+
+    const handleGenerateMeme = () => {
+        logEvent('generate_meme', { episode: frame.episode, timestamp: frame.timestamp, caption })
     }
 
     return (
@@ -63,7 +74,7 @@ export default function FrameEditor({ frame, episode, subtitle }: { frame: Frame
                 <Divider />
                 <div className="flex flex-row gap-2">
                     {!isMemeMode && 
-                        <Button onClick={() => setMemeMode(true)} className="flex-1">
+                        <Button onClick={handleMakeMeme} className="flex-1">
                             Make Meme
                         </Button>
                     }
@@ -72,7 +83,7 @@ export default function FrameEditor({ frame, episode, subtitle }: { frame: Frame
                             <Button onClick={handleCancel} variant='secondary' className="flex-1">
                                 Cancel
                             </Button>
-                            <Link href={`/meme/${frame.episode}/${frame.timestamp}/${btoa(caption)}`} className={`${ffBlurProMedium.className} flex-1 bg-theme-red text-white p-2 rounded-md flex justify-center items-center`}>
+                            <Link onClick={handleGenerateMeme} href={`/meme/${frame.episode}/${frame.timestamp}/${btoa(caption)}`} className={`${ffBlurProMedium.className} flex-1 bg-theme-red text-white p-2 rounded-md flex justify-center items-center`}>
                                 Generate
                             </Link>
                         </>
