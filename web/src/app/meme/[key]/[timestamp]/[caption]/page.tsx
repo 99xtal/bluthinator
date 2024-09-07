@@ -12,6 +12,7 @@ export async function generateMetadata(
   { params }: Props,
 ): Promise<Metadata> {
   return {
+    title: `Bluthinator | Meme "${atob(params.caption)}"`,
     openGraph: {
       title: "Bluthinator",
       description: "Check out this meme from Bluthinator!",

@@ -1,6 +1,26 @@
 import { ffBlurProMedium } from "~/assets/fonts";
 import Image from "next/image";
 import { getFrameUrl } from "~/utils";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: 'Bluthinator | About',
+    description: 'About the Bluthinator project',
+    openGraph: {
+        title: 'Bluthinator',
+        description: 'An Arrested Development search engine and meme generator',
+        type: 'website',
+        url: 'https://bluthinator.com',
+        images: [
+          {
+            url: 'https://bluthinator.com/logo.jpg',
+            width: 236,
+            height: 207,
+            alt: 'Bluthinator Logo',
+          },
+        ]
+    },
+};
 
 export default function Page() {
     return (

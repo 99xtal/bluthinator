@@ -13,7 +13,21 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Bluthinator",
-  description: "An Arrested Development search engine",
+  description: "An Arrested Development search engine and meme generator",
+  openGraph: {
+    title: 'Bluthinator',
+    description: 'An Arrested Development search engine and meme generator',
+    type: 'website',
+    url: 'https://bluthinator.com',
+    images: [
+      {
+        url: 'https://bluthinator.com/logo.jpg',
+        width: 236,
+        height: 207,
+        alt: 'Bluthinator Logo',
+      },
+    ]
+  },
 };
 
 const references = [

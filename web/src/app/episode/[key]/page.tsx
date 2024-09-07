@@ -11,9 +11,12 @@ interface Props {
     };
 }
 
-export function generateMetadata({ params }: Props) {
+export async function generateMetadata({ params }: Props) {
+    const data = await getEpisode(params.key);
+
     return {
         title: `Bluthinator | ${params.key}`,
+        description: `Episode ${data.season}x${data.episode_number} - "${data.title}"`,
     }
 }
 
