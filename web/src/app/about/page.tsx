@@ -52,7 +52,7 @@ export default function Page() {
                             <a href="https://twitter.com/sirsean" className="underline">Sean Schulte</a>&nbsp;
                             &&nbsp;<a href="https://twitter.com/seriousallie" className="underline">Allie Young</a>, the creators of Frinkiac
                         </li>
-                        <li><a href="https://ngallant.dev" className="underline">Nat Gallant</a> and Richard Rybarczyk</li>
+                        <li><a href="https://ngallant.dev" className="underline">Nat Gallant</a> and <a href="https://www.youtube.com/watch?v=uHgt8giw1LY" className="underline">Richard Rybarczyk</a></li>
                     </ul>
                 </section>
             </div>
