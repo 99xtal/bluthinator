@@ -7,8 +7,8 @@ export const metadata: Metadata = {
     title: 'Bluthinator | About',
     description: 'About the Bluthinator project',
     openGraph: {
-        title: 'Bluthinator',
-        description: 'An Arrested Development search engine and meme generator',
+        title: 'About Bluthinator',
+        description: 'About the Bluthinator project',
         type: 'website',
         url: 'https://bluthinator.com',
         images: [
