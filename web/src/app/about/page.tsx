@@ -48,11 +48,11 @@ export default function Page() {
                     <h3 className={`${ffBlurProMedium.className} text-2xl`}>Credits</h3>
                     <ul className="list-disc">
                         <li>
-                            <a href="https://twitter.com/reaperhulk" className="underline">Paul Kehrer</a>,&nbsp;
-                            <a href="https://twitter.com/sirsean" className="underline">Sean Schulte</a>&nbsp;
-                            &&nbsp;<a href="https://twitter.com/seriousallie" className="underline">Allie Young</a>, the creators of Frinkiac
+                            <a href="https://twitter.com/reaperhulk" target="_blank" className="underline">Paul Kehrer</a>,&nbsp;
+                            <a href="https://twitter.com/sirsean" target="_blank" className="underline">Sean Schulte</a>&nbsp;
+                            &&nbsp;<a href="https://twitter.com/seriousallie" target="_blank" className="underline">Allie Young</a>, the creators of Frinkiac
                         </li>
-                        <li><a href="https://ngallant.dev" className="underline">Nat Gallant</a> and <a href="https://www.youtube.com/watch?v=uHgt8giw1LY" className="underline">Richard Rybarczyk</a></li>
+                        <li><a href="https://ngallant.dev" target="_blank" className="underline">Nat Gallant</a> and <a href="https://www.youtube.com/watch?v=uHgt8giw1LY" target="_blank" className="underline">Richard Rybarczyk</a></li>
                     </ul>
                 </section>
             </div>
