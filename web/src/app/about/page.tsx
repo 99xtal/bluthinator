@@ -1,7 +1,7 @@
-import { ffBlurProMedium } from "~/assets/fonts";
-import Image from "next/image";
-import { getFrameUrl } from "~/utils";
 import { Metadata } from "next";
+
+import { ffBlurProMedium } from "~/assets/fonts";
+import { FrameLink } from "~/components";
 
 export const metadata: Metadata = {
     title: 'Bluthinator | About',
@@ -25,13 +25,12 @@ export const metadata: Metadata = {
 export default function Page() {
     return (
         <div className="w-full flex justify-center py-6">
-            <div className="flex flex-col max-w-lg gap-8">
-                <Image
-                    src={getFrameUrl('S1E01', 89625, 'large')}
-                    alt={"We Demand to be Taken Seriously"}
-                    width={640}
-                    height={360}
-                    className="max-w-sm h-auto outline outline-4 outline-theme-black self-center"
+            <div className="flex flex-col max-w-lg gap-8 items-center">
+                <FrameLink 
+                    episode='S1E01'
+                    timestamp={89625}
+                    size="large"
+                    className="outline outline-4 outline-theme-black"
                 />
                 <section>
                     <h3 className={`${ffBlurProMedium.className} text-2xl`}>About</h3>
@@ -46,7 +45,7 @@ export default function Page() {
                 </section>
                 <section>
                     <h3 className={`${ffBlurProMedium.className} text-2xl`}>Credits</h3>
-                    <ul className="list-disc">
+                    <ul className="list-disc mx-4">
                         <li>
                             <a href="https://twitter.com/reaperhulk" target="_blank" className="underline">Paul Kehrer</a>,&nbsp;
                             <a href="https://twitter.com/sirsean" target="_blank" className="underline">Sean Schulte</a>&nbsp;
