@@ -18,6 +18,7 @@ export default function FrameLink({ episode, timestamp, size = 'small', classNam
                 width={400} 
                 height={240}
                 className={"box-border hover:outline hover:outline-4 hover:outline-theme-black" + (className ? ` ${className}` : '')}
+                blurDataURL={getFrameUrl(episode, timestamp, 'small')}
             />
         </Link>
     )
