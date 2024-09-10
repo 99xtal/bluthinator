@@ -11,8 +11,9 @@ type Props = {
 export async function generateMetadata(
   { params }: Props,
 ): Promise<Metadata> {
+  console.log(decodeURIComponent(params.caption));
   return {
-    title: `Bluthinator | Meme "${atob(params.caption)}"`,
+    title: `Bluthinator | Meme "${Buffer.from(decodeURI(params.caption), 'base64').toString()}"`,
     openGraph: {
       title: "Bluthinator",
       description: "Check out this meme from Bluthinator!",

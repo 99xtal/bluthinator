@@ -13,7 +13,7 @@ export async function generateMetadata(
   const data = await getFrame(params.key, params.timestamp);
 
   return {
-    title: `Bluthinator | ${params.key} "${data.subtitle.text}"`,
+    title: `Bluthinator | ${params.key} ${data.subtitle?.text ?? ''}`,
     openGraph: {
       title: "Bluthinator",
       description: "An Arrested Development search engine and meme generator",
