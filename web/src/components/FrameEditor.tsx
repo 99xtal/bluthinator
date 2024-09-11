@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { useState } from "react";
 import Link from "next/link";
 
@@ -11,8 +12,10 @@ import { Button, Caption, Divider, SubtitleText, TextLink, TitleText } from "~/e
 import { logEvent } from "~/utils/firebase";
 
 export default function FrameEditor({ frame, episode, subtitle }: { frame: Frame, episode: Episode, subtitle?: Subtitle }) {
+    const router = useRouter();
     const [isMemeMode, setMemeMode] = useState(false)
     const [caption, setCaption] = useState(subtitle?.text || '')
+    const captionTooLong = caption.length > 500
 
     const handleMakeMeme = () => {
         setMemeMode(true)
@@ -27,6 +30,7 @@ export default function FrameEditor({ frame, episode, subtitle }: { frame: Frame
 
     const handleGenerateMeme = () => {
         logEvent('generate_meme', { episode: frame.episode, timestamp: frame.timestamp, caption })
+        router.push(`/meme/${frame.episode}/${frame.timestamp}/${btoa(caption)}`)
     }
 
     return (
@@ -56,14 +60,17 @@ export default function FrameEditor({ frame, episode, subtitle }: { frame: Frame
                     </TextLink>
 				</div>
                 <Divider />
-                <div className="flex-grow justify-center items-center p-8">
+                <div className="flex flex-col flex-grow justify-center items-center gap-2 p-8">
                     {isMemeMode ? (
-                        <textarea
-                            value={caption}
-                            onChange={(e) => setCaption(e.target.value)}
-                            className={`${ffBlurProMedium.className} w-full p-2 text-lg text-theme-black bg-transparent border border-gray-300 outline-none resize-none`}
-                            rows={3}
-                        />
+                        <>
+                            <textarea
+                                value={caption}
+                                onChange={(e) => setCaption(e.target.value)}
+                                className={`${ffBlurProMedium.className} w-full p-2 text-lg text-theme-black bg-transparent border ${captionTooLong ? "border-theme-red" : "border-gray-300"} outline-none resize-none`}
+                                rows={3}
+                            />
+                            <p className={`self-end text-xs ${captionTooLong ? 'text-theme-red' : 'text-gray-500' }`}>{`(${caption.length}/500)`}</p>
+                        </>
                     ) : (
                         subtitle && <h3 className={`${ffBlurProMedium.className} text-lg text-theme-black`}>
                             {'"' + subtitle?.text + '"'}
@@ -83,9 +90,13 @@ export default function FrameEditor({ frame, episode, subtitle }: { frame: Frame
                             <Button onClick={handleCancel} variant='secondary' className="flex-1">
                                 Cancel
                             </Button>
-                            <Link onClick={handleGenerateMeme} href={`/meme/${frame.episode}/${frame.timestamp}/${btoa(caption)}`} className={`${ffBlurProMedium.className} flex-1 bg-theme-red text-white p-2 rounded-md flex justify-center items-center`}>
+                            <Button 
+                                onClick={handleGenerateMeme} 
+                                disabled={captionTooLong}
+                                className={`${ffBlurProMedium.className} flex-1 bg-theme-red text-white p-2 rounded-md flex justify-center items-center`}
+                            >
                                 Generate
-                            </Link>
+                            </Button>
                         </>
                     )}
                     {/* {!isMemeMode && 
