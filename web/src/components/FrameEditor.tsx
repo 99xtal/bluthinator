@@ -64,7 +64,7 @@ export default function FrameEditor({ frame, episode, subtitle }: { frame: Frame
                         alt={subtitle?.text || frame.episode + ' ' + frame.timestamp}
                         width={640}
                         height={360}
-                        className="w-full h-auto outline outline-4 outline-theme-black"
+                        className="w-full h-auto outline outline-4 outline-theme-black bg-gray-300"
                     />
                 </Link>
 				{isMemeMode && (
