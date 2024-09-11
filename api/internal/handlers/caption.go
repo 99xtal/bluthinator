@@ -88,19 +88,12 @@ func drawCaption(img image.Image, caption string) (image.Image, error) {
 
 	// Draw each line of text
 	fontColor := [3]float64{0.97254, 0.89803, 0.67843}
-	fontSize := float64(48)
+	fontSize := float64(32)
 	if err := dc.LoadFontFace("static/fonts/FFBlurProMedium/font.ttf", fontSize); err != nil {
 		return nil, err
 	}
 
 	lines := splitTextIntoLines(dc, caption, imgWidth-imgPadding)
-	if len(lines) > 1 {
-		fontSize = float64(32)
-		if err := dc.LoadFontFace("static/fonts/FFBlurProMedium/font.ttf", fontSize); err != nil {
-			return nil, err
-		}
-		lines = splitTextIntoLines(dc, caption, imgWidth-imgPadding)
-	}
 
 	lineHeight := fontSize * 1.0
 	startY := imgHeight - float64(len(lines))*lineHeight - 8 // pixels padding from the bottom
