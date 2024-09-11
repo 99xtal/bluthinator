@@ -51,7 +51,7 @@ export default function FrameEditor({ frame, episode, subtitle }: { frame: Frame
 
     const handleGenerateMeme = () => {
         logEvent('generate_meme', { episode: frame.episode, timestamp: frame.timestamp, caption })
-        router.push(`/meme/${frame.episode}/${frame.timestamp}/${btoa(caption)}`)
+        router.push(`/meme/${frame.episode}/${frame.timestamp}?b=${btoa(caption)}`)
     }
 
     return (

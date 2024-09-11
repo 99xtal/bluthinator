@@ -28,14 +28,11 @@ export async function generateMetadata(
   }
 }
 
-// Kept for backwards compatibility
-export default async function Page({ params }: { params: { key: string, timestamp: string, caption: string } }) {
-    const url = `${process.env.NEXT_PUBLIC_API_HOST}/caption/${params.key}/${params.timestamp}?b=${params.caption}`;
- 
+export default function Page({ params }: { params: { key: string, timestamp: string } }) {
     return (
       <div className="flex justify-center items-center">
         <div className="flex flex-col gap-4">
-          <MemeResult episode={params.key} timestamp={params.timestamp} caption={params.caption} />
+        <MemeResult episode={params.key} timestamp={params.timestamp} />
           <div className="flex justify-between items-center">
             <Link href={`/episode/${params.key}/${params.timestamp}`} className={`${ffBlurProMedium.className} text-lg text-theme-black hover:underline`}>
               &larr; Back to Episode
