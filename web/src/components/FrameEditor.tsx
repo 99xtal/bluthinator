@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 import { ffBlurProMedium } from "~/assets/fonts";
@@ -11,11 +11,32 @@ import { Episode, Frame, Subtitle } from "~/types";
 import { Button, Caption, Divider, SubtitleText, TextLink, TitleText } from "~/elements";
 import { logEvent } from "~/utils/firebase";
 
+const CAPTION_FONT_RATIO = 0.08;
+const CAPTION_BOTTOM_RATION = 0.045;
+
 export default function FrameEditor({ frame, episode, subtitle }: { frame: Frame, episode: Episode, subtitle?: Subtitle }) {
     const router = useRouter();
     const [isMemeMode, setMemeMode] = useState(false)
     const [caption, setCaption] = useState(subtitle?.text || '')
+    const [imageSize, setImageSize] = useState({ width: 0, height: 0 })
     const captionTooLong = caption.length > 500
+    const imageRef = useRef<HTMLImageElement | null>(null);
+
+    useEffect(() => {
+        const onResize = () => {
+            if (imageRef.current) {
+                const { width, height } = imageRef.current.getBoundingClientRect()
+                setImageSize({ width, height })
+            }
+        }
+
+        onResize();
+        window.addEventListener('resize', onResize)
+
+        return () => {
+            window.removeEventListener('resize', onResize)
+        }
+    }, [])
 
     const handleMakeMeme = () => {
         setMemeMode(true)
@@ -38,6 +59,7 @@ export default function FrameEditor({ frame, episode, subtitle }: { frame: Frame
 			<div className="relative flex flex-1">
                 <Link href={`/img/${frame.episode}/${frame.timestamp}/large.jpg`} className="block w-full">
                     <Image
+                        ref={imageRef}
                         src={getFrameUrl(frame.episode, frame.timestamp, 'large')}
                         alt={subtitle?.text || frame.episode + ' ' + frame.timestamp}
                         width={640}
@@ -46,8 +68,8 @@ export default function FrameEditor({ frame, episode, subtitle }: { frame: Frame
                     />
                 </Link>
 				{isMemeMode && (
-					<div className="absolute bottom-4 left-0 w-full text-center px-2 ">
-                        <Caption>{caption}</Caption>
+					<div style={{ bottom: `${Math.floor(imageSize.height * CAPTION_BOTTOM_RATION)}px`}} className="absolute left-0 w-full text-center px-2 ">
+                        <Caption fontSize={Math.floor(imageSize.height * CAPTION_FONT_RATIO)}>{caption}</Caption>
 					</div>
 				)}
 			</div>
