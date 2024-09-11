@@ -68,7 +68,7 @@ export default function RootLayout({
             <Link href="/">
                 <Logo />
             </Link>
-          <div className="px-4 md:px-8 py-4 bg-theme-orange flex flex-grow gap-2">
+          <div className="px-4 md:px-8 py-4 bg-theme-orange flex flex-grow gap-2 md:gap-8">
             <Suspense>
               <Search 
                 placeholder={genSearchPlaceholder()} 
